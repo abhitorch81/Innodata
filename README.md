@@ -1,0 +1,50 @@
+# Coding Task Factory (Innodata hackathon, Track 1)
+
+**One reusable strategy** that turns a working repository into validated feature-development tasks for evaluating AI coding systems:
+**rule-algebra task synthesis + ablation / mutation / cross-task validation.** No LLM is needed to run it (deterministic, offline, reproducible); an LLM could later author recipes and the same validators would gate them.
+
+## The idea
+A task is *data*: a family plus a sampled set of independent behavioural **rules** (e.g. for a duration parser: `compound`, `ordered`, `bare`, `fraction`, `case`, `negative`, `spaces`, `bounds`). From that single object we derive:
+- **PROBLEM.md** - one precise requirement per rule (the only spec a solver sees),
+- **reference.patch** - an implementation generated from the rule set (anchor-based edits at the pinned base commit),
+- **tests.patch** - hidden tests where every test is tagged `rule_<id>`; expected values come from an **independent oracle** (a different algorithm from the implementation), and cases are chosen because they **discriminate** each rule.
+
+Because requirements, implementation and tests come from the same rule objects, they cannot drift apart. Tasks differ in behaviour (which rules interact), not in wording.
+
+## Validation evidence (7 stages per task, in `validation.json`)
+| Stage | Proves |
+|---|---|
+| S1 | feature tests fail on the untouched base commit |
+| S2 | reference implementation passes all feature tests |
+| S3 | repo's existing test-suite still passes (pass-to-pass) |
+| S4 | **rule ablation**: for each rule an implementation that is right except for that rule is built; tests attributed to that rule must fail |
+| S5 | **mutation testing** of the reference (flipped operators, off-by-one, negated conditions; timeouts count as kills); survivors listed |
+| S6 | **regression guard**: mutants of pre-existing neighbouring code must be caught by the existing suite / feature tests |
+| S7 | determinism |
+
+Plus a **cross-task variation matrix**: task *i*'s tests run against task *j*'s reference; off-diagonal < 1.0 proves the tasks demand different behaviour.
+
+## Task package (`tasks/<repo>/<family>-NN/`)
+`task.json` (schema `taskfactory/1`: repo URL, **base_commit**, language, commands, fail-to-pass / pass-to-pass lists, rules, difficulty), `PROBLEM.md`, `reference.patch`, `tests.patch`, `variant.json`, `validation.json`.
+
+## Run it
+```bash
+scripts/setup.sh                                   # clones repos at pinned commits, installs tooling
+.venv/bin/python -m taskfactory list
+.venv/bin/python -u -m taskfactory build --repo click --family duration -n 4 --mutants 12
+.venv/bin/python -m taskfactory evaluate tasks/click/duration-03 tasks/click/duration-03/reference.patch
+.venv/bin/python scripts/demo_eval.py tasks/click/duration-03   # grade correct / incomplete / tampering candidates
+.venv/bin/python -m taskfactory report && open report.html
+```
+`evaluate` grades any candidate patch: RESOLVED / UNRESOLVED with a **per-requirement score**, and REJECTED if the patch edits protected tests.
+
+## Families
+| Repo | Family | What the task asks for |
+|---|---|---|
+| click (Python) | `duration` | new `click.Duration` ParamType, 8 optional rules |
+| click | `relations` | `conflicts_with` / `requires` / exclusive groups on `Option` (edits existing core code) |
+| jsoncpp (C++) | `merge` | `Json::Value::merge` deep merge, 8 optional rules |
+| jsoncpp | `arrayinline` | new `StreamWriterBuilder` setting (edits existing writer) |
+| zod (TS) | in progress | |
+
+See `LIMITATIONS.md` for an honest statement of scope and weaknesses.

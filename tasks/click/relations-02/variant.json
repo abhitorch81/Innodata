@@ -1,0 +1,13 @@
+{
+  "family": "relations",
+  "seed": 2,
+  "rules": [
+    "core",
+    "falsy",
+    "groups",
+    "all",
+    "resilient",
+    "help"
+  ],
+  "params": {}
+}

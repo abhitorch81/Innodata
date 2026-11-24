@@ -1,0 +1,126 @@
+{
+  "variant": "duration-03",
+  "rules": [
+    "core",
+    "compound",
+    "ordered",
+    "bare",
+    "case",
+    "negative",
+    "spaces",
+    "bounds"
+  ],
+  "stages": {
+    "S1_base_fails": {
+      "ok": true,
+      "mode": "assertion failures",
+      "failing": 68,
+      "passing_on_base": []
+    },
+    "S2_reference_passes": {
+      "ok": true,
+      "passed": 68,
+      "failed": [],
+      "tail": ""
+    },
+    "S3_regression_intact": {
+      "ok": true,
+      "passed": 2653,
+      "failed": [],
+      "baseline_passed": 2653
+    },
+    "S4_rule_ablations": {
+      "ok": true,
+      "per_rule": {
+        "compound": {
+          "dropped": [
+            "compound",
+            "ordered"
+          ],
+          "caught": true,
+          "caught_by": 7,
+          "collateral": 4,
+          "build_ok": true
+        },
+        "ordered": {
+          "dropped": [
+            "ordered"
+          ],
+          "caught": true,
+          "caught_by": 5,
+          "collateral": 1,
+          "build_ok": true
+        },
+        "bare": {
+          "dropped": [
+            "bare"
+          ],
+          "caught": true,
+          "caught_by": 5,
+          "collateral": 1,
+          "build_ok": true
+        },
+        "case": {
+          "dropped": [
+            "case"
+          ],
+          "caught": true,
+          "caught_by": 5,
+          "collateral": 0,
+          "build_ok": true
+        },
+        "negative": {
+          "dropped": [
+            "negative"
+          ],
+          "caught": true,
+          "caught_by": 4,
+          "collateral": 1,
+          "build_ok": true
+        },
+        "spaces": {
+          "dropped": [
+            "spaces"
+          ],
+          "caught": true,
+          "caught_by": 6,
+          "collateral": 2,
+          "build_ok": true
+        },
+        "bounds": {
+          "dropped": [
+            "bounds"
+          ],
+          "caught": true,
+          "caught_by": 10,
+          "collateral": 0,
+          "build_ok": true
+        }
+      }
+    },
+    "S5_mutation_kill": {
+      "ok": true,
+      "score": 1.0,
+      "killed": 12,
+      "killed_by_regression_only": 0,
+      "survived": 0,
+      "invalid": 0,
+      "survivors": []
+    },
+    "S6_regression_guard": {
+      "ok": true,
+      "applicable": false,
+      "note": "purely additive patch - no pre-existing code touched"
+    },
+    "S7_determinism": {
+      "ok": true
+    }
+  },
+  "ref_patch_lines": 101,
+  "files_touched": [
+    "src/click/__init__.py",
+    "src/click/types.py"
+  ],
+  "valid": true,
+  "seconds": 10.3
+}

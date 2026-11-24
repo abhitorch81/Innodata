@@ -1,0 +1,135 @@
+diff --git a/tests/test_task_duration.py b/tests/test_task_duration.py
+new file mode 100644
+index 0000000..bc1cfca
+--- /dev/null
++++ b/tests/test_task_duration.py
+@@ -0,0 +1,129 @@
++"""Hidden tests for the Duration task (generated; one `rule_<id>` test per requirement)."""
++import datetime as dt
++
++import click
++import pytest
++from click.testing import CliRunner
++
++US = dt.timedelta(microseconds=1)
++
++
++def _run(text, **kw):
++    @click.command()
++    @click.option("--t", type=click.Duration(**kw))
++    def cli(t):
++        click.echo(str(t // US))
++
++    return CliRunner().invoke(cli, ["--t=" + text])
++
++
++def _check(text, expected, **kw):
++    res = _run(text, **kw)
++    if expected is None:
++        assert res.exit_code == 2, f"{text!r} should be rejected, got {res.output!r}"
++        assert repr(text) in res.output, res.output
++    else:
++        assert res.exit_code == 0, f"{text!r} should parse: {res.output!r}"
++        assert res.output.strip() == str(expected), f"{text!r}: {res.output!r}"
++
++
++CASES_CORE = [
++    ('30s', 30000000),
++    ('5m', 300000000),
++    ('2h', 7200000000),
++    ('0s', 0),
++    ('007s', 7000000),
++    ('1d', None),
++    ('2w', 1209600000000),
++    ('250ms', None),
++    ('', None),
++    ('abc', None),
++    ('5x', None),
++    ('m', None),
++    ('s5', None),
++    ('1.5s', None),
++    ('-5s', None),
++    (' 5s', None),
++    ('5s ', None),
++    ('5 s', None),
++    ('٣s', None),
++    ('5S', None),
++    ('5mm', None),
++    ('9999999999999d', None),
++    ('999999999d', None),
++    ('+5s', None),
++    ('5s5', None),
++]
++
++@pytest.mark.parametrize("text,expected", CASES_CORE, ids=[f"c{i}" for i in range(len(CASES_CORE))])
++def test_rule_core(text, expected):
++    _check(text, expected)
++
++
++CASES_COMPOUND = [
++    ('1h30m', 5400000000),
++    ('90m30s', 5430000000),
++    ('1h30m15s', 5415000000),
++    ('1m1m', None),
++]
++
++@pytest.mark.parametrize("text,expected", CASES_COMPOUND, ids=[f"c{i}" for i in range(len(CASES_COMPOUND))])
++def test_rule_compound(text, expected):
++    _check(text, expected)
++
++
++CASES_ORDERED = [
++    ('30m1h', None),
++    ('1m1m', None),
++    ('1s1m', None),
++    ('1h1h', None),
++    ('1m2h', None),
++    ('1h30m', 5400000000),
++    ('1d1h1m', None),
++]
++
++@pytest.mark.parametrize("text,expected", CASES_ORDERED, ids=[f"c{i}" for i in range(len(CASES_ORDERED))])
++def test_rule_ordered(text, expected):
++    _check(text, expected)
++
++
++CASES_BARE = [
++    ('90', 90000000),
++    ('0', 0),
++    ('007', 7000000),
++    ('1h30', None),
++]
++
++@pytest.mark.parametrize("text,expected", CASES_BARE, ids=[f"c{i}" for i in range(len(CASES_BARE))])
++def test_rule_bare(text, expected):
++    _check(text, expected)
++
++
++CASES_BOUNDS = [
++    ('59s', None),
++    ('86401s', None),
++    ('0s', None),
++    ('1s', None),
++    ('1441m', None),
++    ('24h1s', None),
++    ('60s', 60000000),
++    ('86400s', 86400000000),
++]
++
++@pytest.mark.parametrize("text,expected", CASES_BOUNDS, ids=[f"c{i}" for i in range(len(CASES_BOUNDS))])
++def test_rule_bounds(text, expected):
++    _check(text, expected, min=dt.timedelta(seconds=60), max=dt.timedelta(seconds=86400))
++
++
++def test_rule_core_api():
++    assert click.types.Duration is click.Duration
++    assert click.Duration().name == "duration"
++    td = dt.timedelta(hours=1, seconds=7)
++    assert click.Duration().convert(td, None, None) == td
++
++def test_rule_bounds_timedelta_passthrough():
++    typ = click.Duration(min=dt.timedelta(seconds=60), max=dt.timedelta(seconds=86400))
++    assert typ.convert(dt.timedelta(seconds=60), None, None) == dt.timedelta(seconds=60)
++    with pytest.raises(click.BadParameter):
++        typ.convert(dt.timedelta(seconds=86401), None, None)
++

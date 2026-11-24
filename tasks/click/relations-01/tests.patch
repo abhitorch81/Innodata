@@ -1,0 +1,123 @@
+diff --git a/tests/test_task_relations.py b/tests/test_task_relations.py
+new file mode 100644
+index 0000000..8900139
+--- /dev/null
++++ b/tests/test_task_relations.py
+@@ -0,0 +1,117 @@
++"""Hidden tests for the option-relations task (generated; `rule_<id>` tags)."""
++import re
++
++import click
++import pytest
++from click.testing import CliRunner
++
++
++def make():
++    @click.command(context_settings={'terminal_width': 200})
++    @click.option('--alpha', '-a', conflicts_with=('bravo', 'ghost'), help='Alpha mode.')
++    @click.option('--bravo', '-b', envvar='TFRULES_BRAVO', default='b0', show_default=True, conflicts_with=('alpha',))
++    @click.option('--charlie', '-c', type=int, conflicts_with=('echo',), requires=('delta',), help='Charlie level.')
++    @click.option('--delta', '-d')
++    @click.option('--echo/--no-echo')
++    @click.option('--foxtrot', exclusive_group='mode')
++    @click.option('--golf', type=int, exclusive_group='mode')
++    @click.option('--hotel/--no-hotel', exclusive_group='mode')
++    def cli(alpha, bravo, charlie, delta, echo, foxtrot, golf, hotel):
++        click.echo('RAN')
++
++    return cli
++
++
++def _flags(output):
++    msg = output.split('Error:', 1)[1]
++    return set(re.findall(r'--[a-z]+', msg))
++
++
++def _check(args, env, expected):
++    res = CliRunner().invoke(make(), args, env=env)
++    if expected is None:
++        assert res.exit_code == 0 and 'RAN' in res.output, res.output
++    else:
++        assert res.exit_code == 2 and 'RAN' not in res.output, (args, env, res.output)
++        assert _flags(res.output) == {f for viol in expected for f in viol}, (args, env, res.output)
++        if len(expected) > 1:
++            assert len(res.output.split('Error:', 1)[1].strip().splitlines()) == len(expected), res.output
++
++
++CASES_CORE = [
++    (['--foxtrot', 'f', '--delta', 'd'], {}, None),
++    (['--bravo', 'y', '--no-echo'], {}, None),
++    (['--no-hotel', '--foxtrot', 'f'], {}, None),
++    (['--no-echo'], {'TFRULES_BRAVO': 'e'}, None),
++    (['--bravo', 'y', '--delta', '', '--no-hotel', '--alpha', 'x'], {}, [['--alpha', '--bravo']]),
++    (['--charlie', '0', '--bravo', 'y', '--no-echo', '--alpha', 'x'], {}, [['--alpha', '--bravo']]),
++    (['--golf', '2', '--bravo', 'y', '--foxtrot', 'f', '--delta', '', '--alpha', 'x', '--echo'], {}, [['--alpha', '--bravo']]),
++    (['--hotel', '--alpha', 'x', '--golf', '0', '--bravo', 'y'], {}, [['--alpha', '--bravo']]),
++    (['--no-echo', '--delta', '', '--alpha', 'x', '--no-hotel', '--charlie', '3', '--bravo', 'y'], {'TFRULES_BRAVO': 'e'}, [['--alpha', '--bravo']]),
++]
++
++@pytest.mark.parametrize('args,env,expected', CASES_CORE, ids=[f'c{i}' for i in range(len(CASES_CORE))])
++def test_rule_core(args, env, expected):
++    _check(args, env, expected)
++
++
++CASES_REQUIRES = [
++    (['--charlie', '3'], {}, [['--charlie', '--delta']]),
++    (['--charlie', '3'], {}, [['--charlie', '--delta']]),
++    (['--charlie', '3'], {}, [['--charlie', '--delta']]),
++    (['--charlie', '3'], {}, [['--charlie', '--delta']]),
++    (['--charlie', '3'], {}, [['--charlie', '--delta']]),
++    (['--golf', '0', '--delta', '', '--foxtrot', 'f', '--charlie', '0', '--alpha', 'x', '--no-echo'], {}, None),
++    (['--foxtrot', 'f', '--charlie', '0', '--delta', '', '--golf', '0', '--echo', '--alpha', 'x'], {}, None),
++]
++
++@pytest.mark.parametrize('args,env,expected', CASES_REQUIRES, ids=[f'c{i}' for i in range(len(CASES_REQUIRES))])
++def test_rule_requires(args, env, expected):
++    _check(args, env, expected)
++
++
++CASES_FALSY = [
++    (['--charlie', '0'], {}, None),
++    (['--charlie', '0'], {}, None),
++    (['--charlie', '0'], {}, None),
++    (['--charlie', '0'], {}, None),
++    (['--charlie', '0'], {}, None),
++    (['--foxtrot', 'f', '--alpha', 'x', '--delta', 'd', '--charlie', '0'], {}, None),
++    (['--golf', '2', '--bravo', 'y', '--delta', '', '--charlie', '0'], {}, None),
++]
++
++@pytest.mark.parametrize('args,env,expected', CASES_FALSY, ids=[f'c{i}' for i in range(len(CASES_FALSY))])
++def test_rule_falsy(args, env, expected):
++    _check(args, env, expected)
++
++
++CASES_GROUPS = [
++    (['--foxtrot', 'f', '--hotel'], {}, [['--foxtrot', '--hotel']]),
++    (['--hotel', '--foxtrot', 'f'], {'TFRULES_BRAVO': 'e'}, [['--foxtrot', '--hotel']]),
++    (['--golf', '2', '--foxtrot', 'f'], {}, [['--foxtrot', '--golf']]),
++    (['--foxtrot', 'f', '--golf', '2'], {}, [['--foxtrot', '--golf']]),
++    (['--foxtrot', 'f', '--golf', '2'], {}, [['--foxtrot', '--golf']]),
++    (['--golf', '0', '--delta', '', '--foxtrot', 'f', '--charlie', '0', '--alpha', 'x', '--no-echo'], {}, None),
++    (['--foxtrot', 'f', '--charlie', '0', '--delta', '', '--golf', '0', '--echo', '--alpha', 'x'], {}, None),
++]
++
++@pytest.mark.parametrize('args,env,expected', CASES_GROUPS, ids=[f'c{i}' for i in range(len(CASES_GROUPS))])
++def test_rule_groups(args, env, expected):
++    _check(args, env, expected)
++
++
++def test_rule_resilient():
++    cmd = make()
++    with pytest.raises(click.UsageError):
++        cmd.make_context('cli', ['--alpha', 'x', '--bravo', 'y'])
++    ctx = cmd.make_context('cli', ['--alpha', 'x', '--bravo', 'y'], resilient_parsing=True)
++    assert ctx.params['alpha'] == 'x'
++
++
++def test_rule_help():
++    out = ' '.join(CliRunner().invoke(make(), ['--help']).output.split())
++    assert '[conflicts with: --bravo]' in out
++    assert '[default: b0; conflicts with: --alpha]' in out
++    assert '[conflicts with: --echo; requires: --delta]' in out
++    assert 'ghost' not in out
++

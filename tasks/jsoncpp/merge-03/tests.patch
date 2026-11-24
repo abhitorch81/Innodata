@@ -1,0 +1,266 @@
+diff --git a/src/test_lib_json/main.cpp b/src/test_lib_json/main.cpp
+index 313e9f9..4c21ef4 100644
+--- a/src/test_lib_json/main.cpp
++++ b/src/test_lib_json/main.cpp
+@@ -4503,3 +4503,261 @@ JSONTEST_FIXTURE_LOCAL(VersionTest, RuntimeVersionString) {
+ #if defined(__GNUC__)
+ #pragma GCC diagnostic pop
+ #endif
++
++// ---- task tests: Json::Value::merge (generated; one `rule_<id>_c<n>` test per case) ----
++struct TaskMergeTest : JsonTest::TestCase {
++  static Json::Value parse(const std::string& text) {
++    Json::CharReaderBuilder builder;
++    CharReaderPtr reader(builder.newCharReader());
++    Json::Value value;
++    Json::String errs;
++    reader->parse(text.data(), text.data() + text.size(), &value, &errs);
++    return value;
++  }
++  static Json::String compact(const Json::Value& value) {
++    Json::StreamWriterBuilder builder;
++    builder["indentation"] = "";
++    return Json::writeString(builder, value);
++  }
++  // mode 0: merge(patch)   1: merge(patch, false)   2: v.merge(v)
++  void check(const std::string& dst, const std::string& patch, const std::string& expected, int mode) {
++    Json::Value receiver = parse(dst);
++    const Json::Value patchValue = parse(patch);
++    const Json::Value want = parse(expected);
++    Json::Value* returned = nullptr;
++    try {
++      if (mode == 2)
++        returned = &receiver.merge(receiver);
++      else if (mode == 1)
++        returned = &receiver.merge(patchValue, false);
++      else
++        returned = &receiver.merge(patchValue);
++    } catch (const std::exception&) {
++      JSONTEST_ASSERT(false);
++      return;
++    }
++    JSONTEST_ASSERT(returned == &receiver);
++    if (mode != 2) {
++      JSONTEST_ASSERT_STRING_EQUAL(compact(parse(patch)), compact(patchValue));
++    }
++    JSONTEST_ASSERT_STRING_EQUAL(compact(want), compact(receiver));
++  }
++};
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c1) {
++  check(R"J({"a":1})J", R"J({"b":2})J", R"J({"a":1,"b":2})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c2) {
++  check(R"J({"a":1,"b":2})J", R"J({"a":3})J", R"J({"a":3,"b":2})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c3) {
++  check(R"J({"a":1})J", R"J({})J", R"J({"a":1})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c4) {
++  check(R"J({})J", R"J({"a":1})J", R"J({"a":1})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c5) {
++  check(R"J(5)J", R"J({"a":1})J", R"J({"a":1})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c6) {
++  check(R"J({"a":1})J", R"J(5)J", R"J(5)J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c7) {
++  check(R"J("x")J", R"J("y")J", R"J("y")J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c8) {
++  check(R"J(null)J", R"J({"a":1})J", R"J({"a":1})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c9) {
++  check(R"J({"a":1})J", R"J([1,2])J", R"J([1,2])J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c10) {
++  check(R"J([1,2])J", R"J({"a":1})J", R"J({"a":1})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c11) {
++  check(R"J(1)J", R"J([3])J", R"J([3])J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c12) {
++  check(R"J({"a":{"x":1}})J", R"J({"a":{"x":2}})J", R"J({"a":{"x":2}})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c13) {
++  check(R"J({"a":1,"b":[1,2]})J", R"J({"a":true,"c":"s"})J", R"J({"a":true,"b":[1,2],"c":"s"})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c14) {
++  check(R"J({"a":1})J", R"J(null)J", R"J(null)J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_c15) {
++  check(R"J([1])J", R"J("s")J", R"J("s")J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_noover_c1) {
++  check(R"J({"a":1})J", R"J({"a":2,"b":3})J", R"J({"a":1,"b":3})J", 1);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_noover_c2) {
++  check(R"J({"a":{"x":1}})J", R"J({"a":{"y":2}})J", R"J({"a":{"x":1}})J", 1);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_noover_c3) {
++  check(R"J({"a":[1]})J", R"J({"a":[2],"b":[3]})J", R"J({"a":[1],"b":[3]})J", 1);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_noover_c4) {
++  check(R"J(5)J", R"J({"a":1})J", R"J(5)J", 1);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_noover_c5) {
++  check(R"J({"a":1})J", R"J({"a":null})J", R"J({"a":1})J", 1);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_noover_c6) {
++  check(R"J({"a":{"x":1}})J", R"J({"a":{"x":2,"y":3},"b":1})J", R"J({"a":{"x":1},"b":1})J", 1);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_noover_c7) {
++  check(R"J([1])J", R"J([2])J", R"J([1])J", 1);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_noover_c8) {
++  check(R"J({"a":1})J", R"J(7)J", R"J({"a":1})J", 1);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_noover_c9) {
++  check(R"J({"a":1})J", R"J({"b":{"c":2}})J", R"J({"a":1,"b":{"c":2}})J", 1);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_noover_c10) {
++  check(R"J({})J", R"J({"a":1})J", R"J({"a":1})J", 1);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_nulldel_c1) {
++  check(R"J({"a":1,"b":2})J", R"J({"a":null})J", R"J({"b":2})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_nulldel_c2) {
++  check(R"J({"a":1})J", R"J({"b":null})J", R"J({"a":1})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_nulldel_c3) {
++  check(R"J({"a":1})J", R"J({"a":null,"b":2})J", R"J({"b":2})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_nulldel_c4) {
++  check(R"J({"a":{"x":1}})J", R"J({"a":null})J", R"J({})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_nulldel_c5) {
++  check(R"J({"a":null})J", R"J({"a":null})J", R"J({})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_nulldel_c6) {
++  check(R"J({"a":1,"b":{"c":2}})J", R"J({"b":null,"c":3})J", R"J({"a":1,"c":3})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_nulldel_c7) {
++  check(R"J({"a":{"x":1,"y":2}})J", R"J({"a":{"x":null}})J", R"J({"a":{"x":null}})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_nulldel_c8) {
++  check(R"J({"a":{"x":1}})J", R"J({"b":{"y":null}})J", R"J({"a":{"x":1},"b":{"y":null}})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_keepmismatch_c1) {
++  check(R"J({"a":{"x":1}})J", R"J({"a":[1]})J", R"J({"a":{"x":1}})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_keepmismatch_c2) {
++  check(R"J({"a":[1]})J", R"J({"a":"s"})J", R"J({"a":[1]})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_keepmismatch_c3) {
++  check(R"J({"a":1})J", R"J({"a":{"x":1}})J", R"J({"a":1})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_keepmismatch_c4) {
++  check(R"J({"a":null})J", R"J({"a":{"x":1}})J", R"J({"a":null})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_keepmismatch_c5) {
++  check(R"J({"a":"s"})J", R"J({"a":[1],"b":2})J", R"J({"a":"s","b":2})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_keepmismatch_c6) {
++  check(R"J({"a":1})J", R"J({"a":"s"})J", R"J({"a":"s"})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_keepmismatch_c7) {
++  check(R"J({"a":{"x":1}})J", R"J({"a":null})J", R"J({})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_arrconcat_c1) {
++  check(R"J({"a":[1,2]})J", R"J({"a":[3]})J", R"J({"a":[1,2,3]})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_arrconcat_c2) {
++  check(R"J([1])J", R"J([2,3])J", R"J([1,2,3])J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_arrconcat_c3) {
++  check(R"J({"a":[1]})J", R"J({"a":[]})J", R"J({"a":[1]})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_arrconcat_c4) {
++  check(R"J({"a":[[1],{"x":1}]})J", R"J({"a":[[2]]})J", R"J({"a":[[1],{"x":1},[2]]})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_arrconcat_c5) {
++  check(R"J({"a":[]})J", R"J({"a":[1]})J", R"J({"a":[1]})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_arrconcat_c6) {
++  check(R"J({"a":[1]})J", R"J({"a":{"x":1}})J", R"J({"a":[1]})J", 0);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_selfmerge_c1) {
++  check(R"J({"a":[1,2],"b":{"c":[3]}})J", R"J({"a":[1,2],"b":{"c":[3]}})J", R"J({"a":[1,2],"b":{"c":[3]}})J", 2);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_selfmerge_c2) {
++  check(R"J({"a":null,"b":1})J", R"J({"a":null,"b":1})J", R"J({"a":null,"b":1})J", 2);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_selfmerge_c3) {
++  check(R"J([1,2,3])J", R"J([1,2,3])J", R"J([1,2,3])J", 2);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_selfmerge_c4) {
++  check(R"J({"a":[null,1]})J", R"J({"a":[null,1]})J", R"J({"a":[null,1]})J", 2);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_selfmerge_c5) {
++  check(R"J({"a":{"b":null}})J", R"J({"a":{"b":null}})J", R"J({"a":{"b":null}})J", 2);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_selfmerge_c6) {
++  check(R"J({"x":1})J", R"J({"x":1})J", R"J({"x":1})J", 2);
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskMergeTest, rule_core_independent) {
++  // the receiver must not alias the patch: editing the receiver afterwards leaves the patch alone
++  Json::Value receiver = parse("{\"a\":1}");
++  const Json::Value patch = parse("{\"b\":{\"c\":[1,2]}}");
++  receiver.merge(patch);
++  receiver["b"]["c"].append(3);
++  receiver["b"]["d"] = true;
++  JSONTEST_ASSERT_STRING_EQUAL(std::string("{\"b\":{\"c\":[1,2]}}"), compact(patch));
++}

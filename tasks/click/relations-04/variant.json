@@ -1,0 +1,11 @@
+{
+  "family": "relations",
+  "seed": 4,
+  "rules": [
+    "core",
+    "requires",
+    "all",
+    "help"
+  ],
+  "params": {}
+}

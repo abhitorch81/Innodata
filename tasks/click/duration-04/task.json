@@ -1,0 +1,44 @@
+{
+  "schema": "taskfactory/1",
+  "task_id": "click/duration-04",
+  "title": "Add a `Duration` parameter type",
+  "repo": {
+    "name": "click",
+    "url": "https://github.com/pallets/click",
+    "base_commit": "08b803cf32ceb2ae6a772c62d5da42757a897d44",
+    "language": "python"
+  },
+  "problem_statement": "PROBLEM.md",
+  "reference_patch": "reference.patch",
+  "test_patch": "tests.patch",
+  "fail_to_pass": "fail_to_pass.txt",
+  "pass_to_pass": "pass_to_pass.txt",
+  "fail_to_pass_count": 47,
+  "pass_to_pass_count": 2653,
+  "commands": {
+    "setup": "python -m venv .venv && .venv/bin/pip install -e . pytest",
+    "feature": "PYTHONPATH=src pytest tests/test_task_duration.py",
+    "regression": "PYTHONPATH=src pytest tests --ignore=tests/test_task_duration.py"
+  },
+  "family": "duration",
+  "rules": [
+    {
+      "id": "core",
+      "title": "Basic type"
+    },
+    {
+      "id": "fraction",
+      "title": "Fractional numbers"
+    },
+    {
+      "id": "case",
+      "title": "Case-insensitive units"
+    },
+    {
+      "id": "bounds",
+      "title": "Optional bounds"
+    }
+  ],
+  "difficulty": "medium",
+  "validation": "validation.json"
+}

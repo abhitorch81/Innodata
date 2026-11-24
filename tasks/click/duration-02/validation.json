@@ -1,0 +1,98 @@
+{
+  "variant": "duration-02",
+  "rules": [
+    "core",
+    "compound",
+    "ordered",
+    "bare",
+    "bounds"
+  ],
+  "stages": {
+    "S1_base_fails": {
+      "ok": true,
+      "mode": "assertion failures",
+      "failing": 50,
+      "passing_on_base": []
+    },
+    "S2_reference_passes": {
+      "ok": true,
+      "passed": 50,
+      "failed": [],
+      "tail": ""
+    },
+    "S3_regression_intact": {
+      "ok": true,
+      "passed": 2653,
+      "failed": [],
+      "baseline_passed": 2653
+    },
+    "S4_rule_ablations": {
+      "ok": true,
+      "per_rule": {
+        "compound": {
+          "dropped": [
+            "compound",
+            "ordered"
+          ],
+          "caught": true,
+          "caught_by": 4,
+          "collateral": 0,
+          "build_ok": true
+        },
+        "ordered": {
+          "dropped": [
+            "ordered"
+          ],
+          "caught": true,
+          "caught_by": 5,
+          "collateral": 1,
+          "build_ok": true
+        },
+        "bare": {
+          "dropped": [
+            "bare"
+          ],
+          "caught": true,
+          "caught_by": 3,
+          "collateral": 0,
+          "build_ok": true
+        },
+        "bounds": {
+          "dropped": [
+            "bounds"
+          ],
+          "caught": true,
+          "caught_by": 9,
+          "collateral": 0,
+          "build_ok": true
+        }
+      }
+    },
+    "S5_mutation_kill": {
+      "ok": true,
+      "score": 0.917,
+      "killed": 11,
+      "killed_by_regression_only": 0,
+      "survived": 1,
+      "invalid": 0,
+      "survivors": [
+        "src/click/types.py:59 int+1: `count = 0` -> `count = 1`"
+      ]
+    },
+    "S6_regression_guard": {
+      "ok": true,
+      "applicable": false,
+      "note": "purely additive patch - no pre-existing code touched"
+    },
+    "S7_determinism": {
+      "ok": true
+    }
+  },
+  "ref_patch_lines": 94,
+  "files_touched": [
+    "src/click/__init__.py",
+    "src/click/types.py"
+  ],
+  "valid": true,
+  "seconds": 13.1
+}

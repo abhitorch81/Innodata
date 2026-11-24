@@ -1,0 +1,16 @@
+{
+  "family": "merge",
+  "seed": 4,
+  "rules": [
+    "core",
+    "nulldel",
+    "keepmismatch",
+    "deep",
+    "arrconcat",
+    "arrunion",
+    "selfmerge"
+  ],
+  "params": {
+    "depth": 3
+  }
+}

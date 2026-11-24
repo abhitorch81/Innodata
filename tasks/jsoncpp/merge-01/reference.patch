@@ -1,0 +1,89 @@
+diff --git a/include/json/value.h b/include/json/value.h
+index 171f20a..e15a94d 100644
+--- a/include/json/value.h
++++ b/include/json/value.h
+@@ -497,6 +497,10 @@ public:
+   Value& append(const Value& value);
+   Value& append(Value&& value);
+ 
++  /// \brief Merge `patch` into this value (objects merge member-wise); see the
++  /// documentation of each merge mode in the task description.
++  Value& merge(const Value& patch, bool overwrite = true);
++
+   /// \brief Insert value in array at specific index
+   bool insert(ArrayIndex index, const Value& newValue);
+   bool insert(ArrayIndex index, Value&& newValue);
+diff --git a/src/lib_json/json_value.cpp b/src/lib_json/json_value.cpp
+index 5d3ddfd..5c5fa50 100644
+--- a/src/lib_json/json_value.cpp
++++ b/src/lib_json/json_value.cpp
+@@ -1248,6 +1248,69 @@ Value& Value::append(Value&& value) {
+   return this->value_.map_->emplace(size(), std::move(value)).first->second;
+ }
+ 
++namespace {
++enum MergeKind { kMergeObject, kMergeArray, kMergeScalar };
++MergeKind mergeKindOf(const Value& value) {
++  if (value.isObject())
++    return kMergeObject;
++  return value.isArray() ? kMergeArray : kMergeScalar;
++}
++
++void mergeArrays(Value& dst, const Value& src) {
++  const ArrayIndex count = src.size();
++  for (ArrayIndex i = 0; i < count; ++i) {
++    const Value& element = src[i];
++    bool seen = false;
++    for (ArrayIndex j = 0; j < dst.size() && !seen; ++j) {
++      seen = (dst[j] == element);
++    }
++    if (seen)
++      continue;
++    dst.append(element);
++  }
++}
++
++void mergeValues(Value& dst, const Value& src, int depth, bool overwrite) {
++  if (dst.isObject() && src.isObject()) {
++    const Value::Members names = src.getMemberNames();
++    for (const String& name : names) {
++      const Value& patch = src[name];
++      if (!overwrite && dst.isMember(name))
++        continue;
++      if (!dst.isMember(name)) {
++        dst[name] = patch;
++        continue;
++      }
++      Value& current = dst[name];
++      if (mergeKindOf(current) != mergeKindOf(patch))
++        continue;
++      if (current.isObject() && patch.isObject() && depth + 1 < 3) {
++        mergeValues(current, patch, depth + 1, overwrite);
++        continue;
++      }
++      if (current.isArray() && patch.isArray()) {
++        mergeArrays(current, patch);
++        continue;
++      }
++      current = patch;
++    }
++    return;
++  }
++  if (!overwrite)
++    return;
++  if (dst.isArray() && src.isArray()) {
++    mergeArrays(dst, src);
++    return;
++  }
++  dst = src;
++}
++} // namespace
++
++Value& Value::merge(const Value& patch, bool overwrite) {
++  mergeValues(*this, patch, 0, overwrite);
++  return *this;
++}
++
+ bool Value::insert(ArrayIndex index, const Value& newValue) {
+   return insert(index, Value(newValue));
+ }

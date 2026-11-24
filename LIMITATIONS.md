@@ -1,0 +1,8 @@
+# Honest limitations
+- Recipes are authored templates, not free-form invention: the strategy (rule algebra + validators) is reusable and repo-agnostic, but each new feature family costs roughly 150-300 lines and an adapter is needed per language/test runner.
+- Variation is real but bounded: tasks differ in which behavioural rules they combine (and in parameters), not in architecture. The cross-task matrix measures this; it does not prove open-ended diversity.
+- Expected values come from an independent Python oracle that we wrote. A common misreading of the spec by both oracle and reference would pass S2. Mitigation: the oracle is a different algorithm from the implementation, and every task text is generated from the same rule objects as the tests - but no human or LLM spec-reading audit was performed.
+- Mutation testing uses simple syntactic operators on the reference patch; survivors are listed, and some are equivalent mutants. Kill rate is a quality signal, not a proof of test completeness.
+- Difficulty labels are a transparent heuristic (rules, patch size, files, whether existing code is edited). They are NOT calibrated against real solver pass rates; no LLM solver was run in this repository.
+- Regression protection is only as strong as each repository's existing suite (S6 measures this on neighbouring code). For purely additive patches S6 is not applicable.
+- Packaged test IDs and commands assume the pinned base commit and the toolchain recorded in task.json (Python 3.14 venv, g++ with -std=c++11, pnpm/vitest for zod). The official task interface could not be read (event page is JS-rendered), so task.json is our own documented schema (`taskfactory/1`) and is straightforward to remap.

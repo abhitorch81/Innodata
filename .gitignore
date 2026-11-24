@@ -1,0 +1,7 @@
+repos/
+.scratch/
+.venv/
+__pycache__/
+*.pyc
+.junit.xml
+tasks/jsoncpp/arrayinline-*

@@ -1,0 +1,113 @@
+{
+  "variant": "merge-03",
+  "rules": [
+    "core",
+    "noover",
+    "nulldel",
+    "keepmismatch",
+    "arrconcat",
+    "selfmerge"
+  ],
+  "stages": {
+    "S1_base_fails": {
+      "ok": true,
+      "mode": "build/import error",
+      "failing": 0,
+      "passing_on_base": []
+    },
+    "S2_reference_passes": {
+      "ok": true,
+      "passed": 53,
+      "failed": [],
+      "tail": ""
+    },
+    "S3_regression_intact": {
+      "ok": true,
+      "passed": 133,
+      "failed": [],
+      "baseline_passed": 133
+    },
+    "S4_rule_ablations": {
+      "ok": true,
+      "per_rule": {
+        "noover": {
+          "dropped": [
+            "noover"
+          ],
+          "caught": true,
+          "caught_by": 8,
+          "collateral": 0,
+          "build_ok": true
+        },
+        "nulldel": {
+          "dropped": [
+            "nulldel",
+            "selfmerge"
+          ],
+          "caught": true,
+          "caught_by": 9,
+          "collateral": 1,
+          "build_ok": true
+        },
+        "keepmismatch": {
+          "dropped": [
+            "keepmismatch"
+          ],
+          "caught": true,
+          "caught_by": 5,
+          "collateral": 1,
+          "build_ok": true
+        },
+        "arrconcat": {
+          "dropped": [
+            "arrconcat"
+          ],
+          "caught": true,
+          "caught_by": 4,
+          "collateral": 0,
+          "build_ok": true
+        },
+        "selfmerge": {
+          "dropped": [
+            "selfmerge"
+          ],
+          "caught": true,
+          "caught_by": 4,
+          "collateral": 0,
+          "build_ok": true
+        }
+      }
+    },
+    "S5_mutation_kill": {
+      "ok": true,
+      "score": 1.0,
+      "killed": 11,
+      "killed_by_regression_only": 0,
+      "survived": 0,
+      "invalid": 0,
+      "survivors": []
+    },
+    "S6_regression_guard": {
+      "ok": true,
+      "applicable": true,
+      "score": 0.875,
+      "killed_by_existing_suite": 7,
+      "killed_by_feature_tests": 0,
+      "survived": 1,
+      "invalid": 0,
+      "survivors": [
+        "include/json/value.h:508 +->-: `return resolveReference(key.data(), key.data() + key.length(` -> `return resolveReference(key.data(), key.data() - key.length(`"
+      ]
+    },
+    "S7_determinism": {
+      "ok": true
+    }
+  },
+  "ref_patch_lines": 63,
+  "files_touched": [
+    "include/json/value.h",
+    "src/lib_json/json_value.cpp"
+  ],
+  "valid": true,
+  "seconds": 878.3
+}

@@ -1,0 +1,92 @@
+diff --git a/src/click/core.py b/src/click/core.py
+index c3efc74..1b5f307 100644
+--- a/src/click/core.py
++++ b/src/click/core.py
+@@ -1407,6 +1407,8 @@ class Command:
+             if value is UNSET:
+                 ctx.params[name] = None
+ 
++        self._check_option_relations(ctx)
++
+         if args and not ctx.allow_extra_args and not ctx.resilient_parsing:
+             ctx.fail(
+                 ngettext(
+@@ -1420,6 +1422,46 @@ class Command:
+         ctx._opt_prefixes.update(parser._opt_prefixes)
+         return args
+ 
++    def _check_option_relations(self, ctx: Context) -> None:
++        """Fail with a usage error for ``conflicts_with`` / ``requires`` violations."""
++        options = [p for p in self.get_params(ctx) if isinstance(p, Option)]
++        by_name = {p.name: p for p in options}
++
++        def provided(param: Option) -> bool:
++            source = ctx.get_parameter_source(param.name)
++            if not (source is ParameterSource.COMMANDLINE):
++                return False
++            return True
++
++        violations: list[list[Option]] = []
++        seen: set[frozenset[str | None]] = set()
++        for opt in options:
++            if not provided(opt):
++                continue
++            for name in opt.conflicts_with:
++                other = by_name.get(name)
++                if other is None or other is opt or not provided(other):
++                    continue
++                pair = frozenset((opt.name, other.name))
++                if pair not in seen:
++                    seen.add(pair)
++                    violations.append([opt, other])
++            for name in opt.requires:
++                other = by_name.get(name)
++                if other is not None and other is not opt and not provided(other):
++                    violations.append([opt, other])
++
++        if not violations:
++            return
++        lines = [
++            _("Conflicting or incomplete options: {options}.").format(
++                options=", ".join(o.opts[0] for o in group)
++            )
++            for group in violations
++        ]
++        raise UsageError("\n".join(lines), ctx=ctx)
++
++
+     def invoke(self, ctx: Context) -> t.Any:
+         """Given a context, this invokes the attached callback (if it exists)
+         in the right way.
+@@ -3149,6 +3191,8 @@ class Option(Parameter):
+         show_choices: bool = True,
+         show_envvar: bool = False,
+         deprecated: bool | str = False,
++        conflicts_with: cabc.Sequence[str] = (),
++        requires: cabc.Sequence[str] = (),
+         **attrs: t.Any,
+     ) -> None:
+         super().__init__(
+@@ -3160,6 +3204,9 @@ class Option(Parameter):
+             **attrs,
+         )
+ 
++        self.conflicts_with = tuple(conflicts_with)
++        self.requires = tuple(requires)
++
+         # Phase 1: prompt-related attributes. ``_infer_flag_kind`` reads ``self.prompt``
+         # and ``self.prompt_required`` so this must run first.
+         if prompt is True:
+@@ -3590,6 +3637,12 @@ class Option(Parameter):
+         if "required" in extra:
+             extra_items.append(_(extra["required"]))
+ 
++        by_name = {p.name: p for p in ctx.command.get_params(ctx) if isinstance(p, Option)}
++        for attr, label in (("conflicts_with", _("conflicts with")), ("requires", _("requires"))):
++            flags = [by_name[n].opts[0] for n in getattr(self, attr) if n in by_name]
++            if flags:
++                extra_items.append(f"{label}: {', '.join(flags)}")
++
+         if extra_items:
+             extra_str = "; ".join(extra_items)
+             help = f"{help}  [{extra_str}]" if help else f"[{extra_str}]"
