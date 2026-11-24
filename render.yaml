@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: task-factory
+    runtime: static
+    staticPublishPath: ./app
+    buildCommand: ""
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
