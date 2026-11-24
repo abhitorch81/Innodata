@@ -1,0 +1,76 @@
+diff --git a/tests/test_task_duration.py b/tests/test_task_duration.py
+new file mode 100644
+index 0000000..94ad6c2
+--- /dev/null
++++ b/tests/test_task_duration.py
+@@ -0,0 +1,70 @@
++"""Hidden tests for the Duration task (generated; one `rule_<id>` test per requirement)."""
++import datetime as dt
++
++import click
++import pytest
++from click.testing import CliRunner
++
++US = dt.timedelta(microseconds=1)
++
++
++def _run(text, **kw):
++    @click.command()
++    @click.option("--t", type=click.Duration(**kw))
++    def cli(t):
++        click.echo(str(t // US))
++
++    return CliRunner().invoke(cli, ["--t=" + text])
++
++
++def _check(text, expected, **kw):
++    res = _run(text, **kw)
++    if expected is None:
++        assert res.exit_code == 2, f"{text!r} should be rejected, got {res.output!r}"
++        assert repr(text) in res.output, res.output
++    else:
++        assert res.exit_code == 0, f"{text!r} should parse: {res.output!r}"
++        assert res.output.strip() == str(expected), f"{text!r}: {res.output!r}"
++
++
++CASES_CORE = [
++    ('30s', 30000000),
++    ('5m', 300000000),
++    ('2h', 7200000000),
++    ('0s', 0),
++    ('007s', 7000000),
++    ('1d', 86400000000),
++    ('2w', 1209600000000),
++    ('250ms', 250000),
++    ('', None),
++    ('abc', None),
++    ('5x', None),
++    ('m', None),
++    ('s5', None),
++    ('5', None),
++    ('1.5s', None),
++    ('-5s', None),
++    (' 5s', None),
++    ('5s ', None),
++    ('5 s', None),
++    ('1h30m', None),
++    ('٣s', None),
++    ('5S', None),
++    ('5mm', None),
++    ('9999999999999d', None),
++    ('999999999d', 86399999913600000000),
++    ('+5s', None),
++    ('5s5', None),
++]
++
++@pytest.mark.parametrize("text,expected", CASES_CORE, ids=[f"c{i}" for i in range(len(CASES_CORE))])
++def test_rule_core(text, expected):
++    _check(text, expected)
++
++
++def test_rule_core_api():
++    assert click.types.Duration is click.Duration
++    assert click.Duration().name == "duration"
++    td = dt.timedelta(hours=1, seconds=7)
++    assert click.Duration().convert(td, None, None) == td
++

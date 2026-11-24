@@ -216,7 +216,7 @@ const STATIONS = {
   variation: { cam: [100, 16, -6], look: [100, 2, -30] },
 };
 function flyTo(st, dur = 2.1) {
-  const p = STATIONS[st]; S.station = st;
+  const p = STATIONS[st]; S.station = st; stationLabels(st); setTimeout(() => stationLabels(st), 50);
   gsap.to(camera.position, { x: p.cam[0], y: p.cam[1], z: p.cam[2], duration: dur, ease: 'power3.inOut' });
   gsap.to(controls.target, { x: p.look[0], y: p.look[1], z: p.look[2], duration: dur, ease: 'power3.inOut' });
   $$('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.st === st));
@@ -226,7 +226,7 @@ function flyTo(st, dur = 2.1) {
 const pickables = []; // meshes that react to the pointer
 let atlasNodes = [];
 function buildAtlas() {
-  while (atlasG.children.length) atlasG.remove(atlasG.children[0]);
+  clearGroup(atlasG);
   pickables.length = 0; atlasNodes = [];
   const repos = [...new Set(S.tasks.map((t) => t.repo))];
   repos.forEach((repo, ri) => {
@@ -256,7 +256,7 @@ function buildAtlas() {
       label(fam, 'fam', atlasG, [fx, 3.4, fz]);
     });
   });
-  refreshSelectionHalo();
+  refreshSelectionHalo(); stationLabels(S.station);
 }
 const halo = new THREE.Mesh(new THREE.TorusGeometry(1.15, 0.05, 10, 60), new THREE.MeshBasicMaterial({ color: 0xffffff }));
 halo.visible = false; atlasG.add(halo);
@@ -268,7 +268,13 @@ function refreshSelectionHalo() {
 
 /* ───────────────────────── Pipeline station ───────────────────────── */
 const P = { core: null, rules: [], gates: [], cubes: null, tstate: [], trule: [], mut: null, packet: null, mstate: [], coreGlow: null };
-function clearGroup(g) { while (g.children.length) { const c = g.children.pop(); c.parent = null; } }
+function clearGroup(g) {
+  [...g.children].forEach((c) => { c.traverse((o) => { o.geometry?.dispose?.(); if (o.isCSS2DObject) o.element.remove(); }); g.remove(c); });
+}
+function stationLabels(st) {
+  const map = { atlas: atlasG, pipeline: pipeG, variation: varG };
+  Object.entries(map).forEach(([k, g]) => g.traverse((o) => { if (o.isCSS2DObject) o.visible = k === st; }));
+}
 const tmpM = new THREE.Matrix4(), tmpP = new THREE.Vector3(), tmpS = new THREE.Vector3(), tmpQ = new THREE.Quaternion(), tmpC = new THREE.Color();
 
 function buildPipeline(t) {
@@ -324,7 +330,7 @@ function buildPipeline(t) {
   P.mstate = Array.from({ length: nm }, (_, i) => ({ survived: i >= (st5.killed || 0) * nm / Math.max(1, (st5.killed || 0) + (st5.survived || 0)), a: Math.random() * 6.28, r: 2 + Math.random() * 1.2, y: (Math.random() - 0.5) * 2, k: 0 }));
   P.mstate.forEach((m, i) => P.mut.setColorAt(i, tmpC.set(0x7a86b8)));
   P.mut.visible = true; pipeG.add(P.mut);
-  S.ablated.clear(); renderStageList(t); renderRules(t);
+  S.ablated.clear(); renderStageList(t); renderRules(t); stationLabels(S.station);
 }
 
 /* per-frame animation of the pipeline station */
@@ -462,6 +468,7 @@ function buildVariation(t) {
     gsap.to(m.scale, { y: 1, duration: 1.1, delay: 0.2 + (i + j) * 0.07, ease: 'back.out(1.6)' });
   }));
   M.variants.forEach((v, k) => { label(v.split('-')[1], 'gate', varG, [k * sp - off, 0, off + 2]); label(v.split('-')[1], 'gate', varG, [-off - 2, 0, k * sp - off]); });
+  stationLabels(S.station);
 }
 
 /* ───────────────────────── interaction / picking ───────────────────────── */

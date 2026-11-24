@@ -1,0 +1,20 @@
+{
+  "family": "duration",
+  "seed": 69,
+  "rules": [
+    "core"
+  ],
+  "params": {
+    "units": [
+      "w",
+      "d",
+      "h",
+      "m",
+      "s",
+      "ms"
+    ],
+    "unit_desc": "`w` (weeks, 604800 s), `d` (days, 86400 s), `h` (hours, 3600 s), `m` (minutes, 60 s), `s` (seconds, 1 s), `ms` (milliseconds, 0.001 s)",
+    "min_s": 30,
+    "max_s": 86400
+  }
+}

@@ -1,0 +1,113 @@
+diff --git a/src/click/__init__.py b/src/click/__init__.py
+index a34ab02..61f8c42 100644
+--- a/src/click/__init__.py
++++ b/src/click/__init__.py
+@@ -56,6 +56,7 @@ from .termui import unstyle as unstyle
+ from .types import BOOL as BOOL
+ from .types import Choice as Choice
+ from .types import DateTime as DateTime
++from .types import Duration as Duration
+ from .types import File as File
+ from .types import FLOAT as FLOAT
+ from .types import FloatRange as FloatRange
+diff --git a/src/click/types.py b/src/click/types.py
+index 5d11e9f..4087c50 100644
+--- a/src/click/types.py
++++ b/src/click/types.py
+@@ -4,11 +4,13 @@ import abc
+ import collections.abc as cabc
+ import enum
+ import os
++import re
+ import stat
+ import sys
+ import typing as t
+ import uuid
+ from datetime import datetime
++from datetime import timedelta
+ from gettext import gettext as _
+ from gettext import ngettext
+ 
+@@ -572,6 +574,82 @@ class DateTime(ParamType[datetime]):
+         return "DateTime"
+ 
+ 
++class Duration(ParamType[timedelta]):
++    """Convert strings such as ``90s`` or ``1h30m`` into :class:`~datetime.timedelta`.
++
++    A value is a number followed by a unit suffix.
++    """
++
++    name = "duration"
++
++    _UNITS: t.ClassVar[dict[str, str]] = {
++        "w": "604800",
++        "d": "86400",
++        "h": "3600",
++        "m": "60",
++        "s": "1",
++        "ms": "0.001",
++    }
++    _NUMBER = re.compile(r"[0-9]+")
++    _SEGMENT = re.compile(r"(?P<number>[0-9]+)(?P<unit>[A-Za-z]+)")
++
++    def convert(
++        self, value: t.Any, param: Parameter | None, ctx: Context | None
++    ) -> timedelta:
++        if isinstance(value, timedelta):
++            result = value
++        else:
++            result = self._parse(value)
++
++            if result is None:
++                self.fail(_("{value!r} is not a valid duration.").format(value=value), param, ctx)
++
++        return result
++
++    def _parse(self, value: t.Any) -> timedelta | None:
++        from decimal import Decimal  # lazy: keeps `import click` light
++
++        if not isinstance(value, str):
++            return None
++
++        text = value
++        sign = 1
++        if not text:
++            return None
++
++        total = Decimal(0)
++        pos = 0
++        count = 0
++        while pos < len(text):
++            m = self._SEGMENT.match(text, pos)
++            if m is None:
++                return None
++
++            unit = m.group("unit")
++            spec = self._UNITS.get(unit)
++            if spec is None:
++                return None
++            factor = Decimal(spec)
++            total += Decimal(m.group("number")) * factor
++            count += 1
++            pos = m.end()
++            if pos != len(text):
++                return None
++
++        return self._build(total, sign)
++
++    @staticmethod
++    def _build(total: t.Any, sign: int) -> timedelta | None:
++        micros = int((total * 1_000_000).to_integral_value())
++        try:
++            return timedelta(microseconds=sign * micros)
++        except OverflowError:
++            return None
++
++    def __repr__(self) -> str:
++        return "DURATION"
++
++
+ class _NumberParamTypeBase(
+     ParamType[_ValueT_co], t.Generic[_ValueT_contra, _ValueT_co]
+ ):
