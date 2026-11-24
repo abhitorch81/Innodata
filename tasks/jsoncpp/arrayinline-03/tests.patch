@@ -1,0 +1,239 @@
+diff --git a/src/test_lib_json/main.cpp b/src/test_lib_json/main.cpp
+index 313e9f9..5e0b1a8 100644
+--- a/src/test_lib_json/main.cpp
++++ b/src/test_lib_json/main.cpp
+@@ -4503,3 +4503,234 @@ JSONTEST_FIXTURE_LOCAL(VersionTest, RuntimeVersionString) {
+ #if defined(__GNUC__)
+ #pragma GCC diagnostic pop
+ #endif
++
++// ---- task tests: StreamWriterBuilder arrayInlineLimit (generated) ----
++struct TaskInlineTest : JsonTest::TestCase {
++  static Json::Value parse(const std::string& text) {
++    Json::CharReaderBuilder builder;
++    CharReaderPtr reader(builder.newCharReader());
++    Json::Value value;
++    Json::String errs;
++    reader->parse(text.data(), text.data() + text.size(), &value, &errs);
++    return value;
++  }
++  void expectRender(const Json::Value& value, int limit, const char* indent, const char* style,
++                    const std::string& expected) {
++    Json::StreamWriterBuilder builder;
++    builder["indentation"] = indent;
++    builder["commentStyle"] = style;
++    builder["arrayInlineLimit"] = limit;
++    Json::String actual;
++    try {
++      actual = Json::writeString(builder, value);
++    } catch (const std::exception&) {
++      JSONTEST_ASSERT(false);
++      return;
++    }
++    JSONTEST_ASSERT_STRING_EQUAL(expected, actual);
++  }
++};
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_core_c1) {
++  Json::Value value = parse(R"J({"a":[1,2,3]})J");
++  expectRender(value, 3, "  ", "All", R"J({
++  "a" : [ 1, 2, 3 ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_core_c2) {
++  Json::Value value = parse(R"J({"a":[1,"x",null,true]})J");
++  expectRender(value, 4, "  ", "All", R"J({
++  "a" : [ 1, "x", null, true ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_core_c3) {
++  Json::Value value = parse(R"J({"a":[[1],[2]]})J");
++  expectRender(value, 3, "  ", "All", R"J({
++  "a" : 
++  [
++    [ 1 ],
++    [ 2 ]
++  ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_core_c4) {
++  Json::Value value = parse(R"J({"k":{"a":[1,2]},"z":[5]})J");
++  expectRender(value, 3, "  ", "All", R"J({
++  "k" : 
++  {
++    "a" : [ 1, 2 ]
++  },
++  "z" : [ 5 ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_core_c5) {
++  Json::Value value = parse(R"J({"a":[1,2]})J");
++  expectRender(value, 3, "  ", "None", R"J({
++  "a" : [ 1, 2 ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_core_c6) {
++  Json::Value value = parse(R"J({"a":[1,2],"b":7})J");
++  expectRender(value, 2, "  ", "All", R"J({
++  "a" : [ 1, 2 ],
++  "b" : 7
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_core_c7) {
++  Json::Value value = parse(R"J({"o":{"p":{"q":["a","b"]}}})J");
++  expectRender(value, 5, "  ", "All", R"J({
++  "o" : 
++  {
++    "p" : 
++    {
++      "q" : [ "a", "b" ]
++    }
++  }
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_core_c8) {
++  Json::Value value = parse(R"J([{"a":[1]},2])J");
++  expectRender(value, 4, "  ", "All", R"J([
++  {
++    "a" : [ 1 ]
++  },
++  2
++])J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_emptyelem_c1) {
++  Json::Value value = parse(R"J({"a":[1,[],{}]})J");
++  expectRender(value, 3, "  ", "All", R"J({
++  "a" : [ 1, [], {} ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_emptyelem_c2) {
++  Json::Value value = parse(R"J({"a":[[],[]]})J");
++  expectRender(value, 3, "  ", "All", R"J({
++  "a" : [ [], [] ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_emptyelem_c3) {
++  Json::Value value = parse(R"J({"a":[{}]})J");
++  expectRender(value, 1, "  ", "All", R"J({
++  "a" : [ {} ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_emptyelem_c4) {
++  Json::Value value = parse(R"J({"a":[[]]})J");
++  expectRender(value, 1, "  ", "All", R"J({
++  "a" : [ [] ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_emptyelem_c5) {
++  Json::Value value = parse(R"J({"a":[1,{"x":1}]})J");
++  expectRender(value, 3, "  ", "All", R"J({
++  "a" : 
++  [
++    1,
++    {
++      "x" : 1
++    }
++  ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_emptyelem_c6) {
++  Json::Value value = parse(R"J({"a":[1,2,[]]})J");
++  expectRender(value, 2, "  ", "All", R"J({
++  "a" : 
++  [
++    1,
++    2,
++    []
++  ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_maxwidth_c1) {
++  Json::Value value = parse(R"J({"a":["xxxxx","xxxxx","xxxxx"]})J");
++  expectRender(value, 10, "  ", "All", R"J({
++  "a" : 
++  [
++    "xxxxx",
++    "xxxxx",
++    "xxxxx"
++  ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_maxwidth_c2) {
++  Json::Value value = parse(R"J({"a":["xxxxxxx","xxxxxxx","xxxxxxx"]})J");
++  expectRender(value, 10, "  ", "All", R"J({
++  "a" : 
++  [
++    "xxxxxxx",
++    "xxxxxxx",
++    "xxxxxxx"
++  ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_maxwidth_c3) {
++  Json::Value value = parse(R"J({"a":["xxxxxx","xxxx","xxxx"]})J");
++  expectRender(value, 10, "  ", "All", R"J({
++  "a" : [ "xxxxxx", "xxxx", "xxxx" ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_maxwidth_c4) {
++  Json::Value value = parse(R"J({"a":["xxxxx","xxxx","xxxx"]})J");
++  expectRender(value, 10, "  ", "All", R"J({
++  "a" : [ "xxxxx", "xxxx", "xxxx" ]
++})J");
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_core_settings) {
++  Json::StreamWriterBuilder builder;
++  JSONTEST_ASSERT(builder.settings_.isMember("arrayInlineLimit"));
++  JSONTEST_ASSERT(builder.settings_["arrayInlineLimit"] == Json::Value(0));
++  JSONTEST_ASSERT(builder.validate(nullptr));
++  builder["arrayInlineLimit"] = 3;
++  JSONTEST_ASSERT(builder.validate(nullptr));
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_strictvalue_c1) {
++  Json::StreamWriterBuilder builder;
++  builder["arrayInlineLimit"] = true;
++  JSONTEST_ASSERT_THROWS(delete builder.newStreamWriter());
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_strictvalue_c2) {
++  Json::StreamWriterBuilder builder;
++  builder["arrayInlineLimit"] = 2.5;
++  JSONTEST_ASSERT_THROWS(delete builder.newStreamWriter());
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_strictvalue_c3) {
++  Json::StreamWriterBuilder builder;
++  builder["arrayInlineLimit"] = -1;
++  JSONTEST_ASSERT_THROWS(delete builder.newStreamWriter());
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_strictvalue_c4) {
++  Json::StreamWriterBuilder builder;
++  builder["arrayInlineLimit"] = "3";
++  JSONTEST_ASSERT_THROWS(delete builder.newStreamWriter());
++}
++
++JSONTEST_FIXTURE_LOCAL(TaskInlineTest, rule_strictvalue_c5) {
++  Json::StreamWriterBuilder builder;
++  builder["arrayInlineLimit"] = 1.0;
++  JSONTEST_ASSERT_THROWS(delete builder.newStreamWriter());
++}

@@ -1,0 +1,66 @@
+{
+  "reference solution": {
+    "fail_to_pass": "35/35",
+    "pass_to_pass": "2875/2875",
+    "per_rule": {
+      "core": "9/9",
+      "deep": "5/5",
+      "firstonly": "5/5",
+      "key": "5/5",
+      "nullish": "5/5",
+      "perindex": "5/5",
+      "types": "1/1"
+    },
+    "build_ok": true,
+    "verdict": "RESOLVED"
+  },
+  "plausible solution missing requirement 'key'": {
+    "fail_to_pass": "26/35",
+    "pass_to_pass": "2875/2875",
+    "per_rule": {
+      "core": "9/9",
+      "deep": "5/5",
+      "firstonly": "4/5",
+      "key": "1/5",
+      "nullish": "3/5",
+      "perindex": "4/5",
+      "types": "0/1"
+    },
+    "build_ok": true,
+    "verdict": "UNRESOLVED"
+  },
+  "plausible solution missing requirement 'deep'": {
+    "fail_to_pass": "31/35",
+    "pass_to_pass": "2875/2875",
+    "per_rule": {
+      "core": "9/9",
+      "deep": "1/5",
+      "firstonly": "5/5",
+      "key": "5/5",
+      "nullish": "5/5",
+      "perindex": "5/5",
+      "types": "1/1"
+    },
+    "build_ok": true,
+    "verdict": "UNRESOLVED"
+  },
+  "empty patch": {
+    "fail_to_pass": "0/35",
+    "pass_to_pass": "2875/2875",
+    "per_rule": {
+      "core": "0/9",
+      "deep": "0/5",
+      "firstonly": "0/5",
+      "key": "0/5",
+      "nullish": "0/5",
+      "perindex": "0/5",
+      "types": "0/1"
+    },
+    "build_ok": true,
+    "verdict": "UNRESOLVED"
+  },
+  "tampers with protected tests": {
+    "verdict": "REJECTED",
+    "reason": "candidate edits protected test files: ['packages/zod/src/v4/classic/tests/task-unique.test.ts']"
+  }
+}

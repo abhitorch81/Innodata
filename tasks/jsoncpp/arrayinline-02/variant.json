@@ -1,0 +1,15 @@
+{
+  "family": "arrayinline",
+  "seed": 2,
+  "rules": [
+    "core",
+    "nestedarr",
+    "totalcount",
+    "noroot",
+    "maxwidth"
+  ],
+  "params": {
+    "pad": false,
+    "width": 22
+  }
+}

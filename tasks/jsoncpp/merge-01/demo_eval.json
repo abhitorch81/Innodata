@@ -1,0 +1,66 @@
+{
+  "reference solution": {
+    "fail_to_pass": "59/59",
+    "pass_to_pass": "133/133",
+    "per_rule": {
+      "arrconcat": "7/7",
+      "arrunion": "9/9",
+      "core": "16/16",
+      "deep": "5/5",
+      "depthlimit": "4/4",
+      "keepmismatch": "8/8",
+      "noover": "10/10"
+    },
+    "build_ok": true,
+    "verdict": "RESOLVED"
+  },
+  "plausible solution missing requirement 'noover'": {
+    "fail_to_pass": "51/59",
+    "pass_to_pass": "133/133",
+    "per_rule": {
+      "arrconcat": "7/7",
+      "arrunion": "9/9",
+      "core": "16/16",
+      "deep": "5/5",
+      "depthlimit": "4/4",
+      "keepmismatch": "8/8",
+      "noover": "2/10"
+    },
+    "build_ok": true,
+    "verdict": "UNRESOLVED"
+  },
+  "plausible solution missing requirement 'keepmismatch'": {
+    "fail_to_pass": "51/59",
+    "pass_to_pass": "133/133",
+    "per_rule": {
+      "arrconcat": "6/7",
+      "arrunion": "9/9",
+      "core": "16/16",
+      "deep": "4/5",
+      "depthlimit": "4/4",
+      "keepmismatch": "2/8",
+      "noover": "10/10"
+    },
+    "build_ok": true,
+    "verdict": "UNRESOLVED"
+  },
+  "empty patch": {
+    "fail_to_pass": "0/59",
+    "pass_to_pass": "0/133",
+    "per_rule": {
+      "arrconcat": "0/7",
+      "arrunion": "0/9",
+      "core": "0/16",
+      "deep": "0/5",
+      "depthlimit": "0/4",
+      "keepmismatch": "0/8",
+      "noover": "0/10"
+    },
+    "build_ok": false,
+    "verdict": "UNRESOLVED"
+  },
+  "tampers with protected tests": {
+    "verdict": "REJECTED",
+    "reason": "candidate edits protected test files: ['src/test_lib_json/main.cpp']"
+  }
+}

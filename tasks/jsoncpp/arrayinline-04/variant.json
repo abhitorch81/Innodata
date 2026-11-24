@@ -1,0 +1,17 @@
+{
+  "family": "arrayinline",
+  "seed": 4,
+  "rules": [
+    "core",
+    "emptyelem",
+    "nestedarr",
+    "totalcount",
+    "maxwidth",
+    "commentguard",
+    "strictvalue"
+  ],
+  "params": {
+    "pad": true,
+    "width": 28
+  }
+}

@@ -1,0 +1,35 @@
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_core: SameValueZero examples from the specification
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_core: c0
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_core: c1
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_core: c2
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_core: c3
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_core: c4
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_core: c5
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_core: c6
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_core: parsed output values are compared
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_deep: c0
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_deep: c1
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_deep: c2
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_deep: c3
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_deep: c4
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_key: c0
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_key: c1
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_key: c2
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_key: c3
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_key: c4
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_message: c0
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_message: c1
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_message: c2
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_message: c3
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_message: c4
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_nullish: c0
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_nullish: c1
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_nullish: c2
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_nullish: c3
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_nullish: c4
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_perindex: c0
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_perindex: c1
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_perindex: c2
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_perindex: c3
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_perindex: nested path is prefixed
+packages/zod/src/v4/classic/tests/task-unique.test.ts::rule_types: callback is typed with the element output type

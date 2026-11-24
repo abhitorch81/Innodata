@@ -44,5 +44,6 @@
     }
   ],
   "difficulty": "medium",
-  "validation": "validation.json"
+  "validation": "validation.json",
+  "variant": "variant.json"
 }

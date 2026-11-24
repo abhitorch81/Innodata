@@ -1,0 +1,66 @@
+{
+  "reference solution": {
+    "fail_to_pass": "30/30",
+    "pass_to_pass": "137/137",
+    "per_rule": {
+      "commentguard": "3/3",
+      "core": "7/7",
+      "emptyelem": "4/4",
+      "nestedarr": "4/4",
+      "noroot": "3/3",
+      "strictvalue": "5/5",
+      "totalcount": "4/4"
+    },
+    "build_ok": true,
+    "verdict": "RESOLVED"
+  },
+  "plausible solution missing requirement 'emptyelem'": {
+    "fail_to_pass": "26/30",
+    "pass_to_pass": "137/137",
+    "per_rule": {
+      "commentguard": "3/3",
+      "core": "7/7",
+      "emptyelem": "0/4",
+      "nestedarr": "4/4",
+      "noroot": "3/3",
+      "strictvalue": "5/5",
+      "totalcount": "4/4"
+    },
+    "build_ok": true,
+    "verdict": "UNRESOLVED"
+  },
+  "plausible solution missing requirement 'nestedarr'": {
+    "fail_to_pass": "25/30",
+    "pass_to_pass": "137/137",
+    "per_rule": {
+      "commentguard": "3/3",
+      "core": "7/7",
+      "emptyelem": "4/4",
+      "nestedarr": "2/4",
+      "noroot": "2/3",
+      "strictvalue": "5/5",
+      "totalcount": "2/4"
+    },
+    "build_ok": true,
+    "verdict": "UNRESOLVED"
+  },
+  "empty patch": {
+    "fail_to_pass": "0/30",
+    "pass_to_pass": "137/137",
+    "per_rule": {
+      "commentguard": "0/3",
+      "core": "0/7",
+      "emptyelem": "0/4",
+      "nestedarr": "0/4",
+      "noroot": "0/3",
+      "strictvalue": "0/5",
+      "totalcount": "0/4"
+    },
+    "build_ok": true,
+    "verdict": "UNRESOLVED"
+  },
+  "tampers with protected tests": {
+    "verdict": "REJECTED",
+    "reason": "candidate edits protected test files: ['src/test_lib_json/main.cpp']"
+  }
+}

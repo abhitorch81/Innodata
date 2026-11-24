@@ -58,10 +58,17 @@ def validate(recipe, v, adapter, n_mutants=30, n_ctx=8, log=print):
     # ---- S1: tests alone on the base commit must fail (fail-to-pass)
     fresh(); ws.apply(tests)
     r = adapter.run_feature(ws, v, recipe)
+    failing_tags = {rule_of(t) for t in r.failed}
+    uncovered = [x for x in v.rules if x not in failing_tags]
+    # every requirement must have >=1 test that FAILS on the base commit (fail-to-pass). Negative-behaviour tests
+    # ("must stay as before") legitimately pass on base: they are kept as pass-to-pass *guard* tests.
+    s1_ok = (not r.build_ok) or (not uncovered and bool(r.failed))
+    guards = sorted(r.passed)
     ev["stages"]["S1_base_fails"] = dict(
-        ok=(not r.passed), mode="build/import error" if not r.build_ok else "assertion failures",
-        failing=len(r.failed), passing_on_base=sorted(r.passed))
-    log(f"  S1 base fails            {'PASS' if not r.passed else 'FAIL'} ({ev['stages']['S1_base_fails']['mode']})")
+        ok=s1_ok, mode="build/import error" if not r.build_ok else "assertion failures",
+        failing=len(r.failed), guard_tests_passing_on_base=len(guards), rules_without_failing_test=uncovered)
+    log(f"  S1 base fails            {'PASS' if s1_ok else 'FAIL'} ({ev['stages']['S1_base_fails']['mode']}, "
+        f"{len(guards)} guard tests already pass)")
 
     # ---- reference patch + tests patch (the package artefacts)
     fresh(); ws.apply(impl); ref_patch = ws.diff()
@@ -82,8 +89,11 @@ def validate(recipe, v, adapter, n_mutants=30, n_ctx=8, log=print):
     ev["stages"]["S3_regression_intact"] = dict(ok=rr.ok, passed=len(rr.passed), failed=sorted(rr.failed)[:10],
                                                 baseline_passed=base_ok)
     log(f"  S3 regression intact     {'PASS' if rr.ok else 'FAIL'} ({len(rr.passed)} existing tests)")
-    ev["fail_to_pass"] = sorted(rf.passed)
-    ev["pass_to_pass"] = sorted(rr.passed)
+    # runners may not honour --exclude for every sub-project: never count the task's own tests as "existing" ones
+    own = tuple(p + "::" for p in recipe.feature_test_paths(v))
+    existing = {i for i in rr.passed if not i.startswith(own)}
+    ev["fail_to_pass"] = sorted(rf.passed - set(guards))
+    ev["pass_to_pass"] = sorted(existing | set(guards))
 
     # ---- S4: every rule, when removed, must be caught by tests attributed to that rule
     abl = {}

@@ -4,4 +4,3 @@ repos/
 __pycache__/
 *.pyc
 .junit.xml
-tasks/jsoncpp/arrayinline-*

@@ -1,0 +1,70 @@
+{
+  "reference solution": {
+    "fail_to_pass": "68/68",
+    "pass_to_pass": "2653/2653",
+    "per_rule": {
+      "bare": "6/6",
+      "bounds": "10/10",
+      "case": "6/6",
+      "compound": "6/6",
+      "core": "21/21",
+      "negative": "5/5",
+      "ordered": "7/7",
+      "spaces": "7/7"
+    },
+    "build_ok": true,
+    "verdict": "RESOLVED"
+  },
+  "plausible solution missing requirement 'compound'": {
+    "fail_to_pass": "57/68",
+    "pass_to_pass": "2653/2653",
+    "per_rule": {
+      "bare": "6/6",
+      "bounds": "10/10",
+      "case": "5/6",
+      "compound": "1/6",
+      "core": "21/21",
+      "negative": "4/5",
+      "ordered": "5/7",
+      "spaces": "5/7"
+    },
+    "build_ok": true,
+    "verdict": "UNRESOLVED"
+  },
+  "plausible solution missing requirement 'ordered'": {
+    "fail_to_pass": "62/68",
+    "pass_to_pass": "2653/2653",
+    "per_rule": {
+      "bare": "6/6",
+      "bounds": "10/10",
+      "case": "6/6",
+      "compound": "5/6",
+      "core": "21/21",
+      "negative": "5/5",
+      "ordered": "2/7",
+      "spaces": "7/7"
+    },
+    "build_ok": true,
+    "verdict": "UNRESOLVED"
+  },
+  "empty patch": {
+    "fail_to_pass": "0/68",
+    "pass_to_pass": "2653/2653",
+    "per_rule": {
+      "bare": "0/6",
+      "bounds": "0/10",
+      "case": "0/6",
+      "compound": "0/6",
+      "core": "0/21",
+      "negative": "0/5",
+      "ordered": "0/7",
+      "spaces": "0/7"
+    },
+    "build_ok": true,
+    "verdict": "UNRESOLVED"
+  },
+  "tampers with protected tests": {
+    "verdict": "REJECTED",
+    "reason": "candidate edits protected test files: ['tests/test_task_duration.py']"
+  }
+}

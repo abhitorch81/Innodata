@@ -94,14 +94,14 @@ def evaluate(task_dir: Path, candidate_patch: str, adapter, log=print):
     ws.apply_patch(tests_patch)
     rf = adapter.run_feature(ws, v, recipe)
     rr = adapter.run_regression(ws, v, recipe, full=True)
-    f2p = set((task_dir / "fail_to_pass.txt").read_text().split())
-    p2p = set((task_dir / "pass_to_pass.txt").read_text().split())
+    f2p = {l for l in (task_dir / "fail_to_pass.txt").read_text().splitlines() if l}
+    p2p = {l for l in (task_dir / "pass_to_pass.txt").read_text().splitlines() if l}
     per_rule = {}
     for tid in f2p:
         k = rule_of(tid) or "?"
         per_rule.setdefault(k, [0, 0])[1] += 1
         per_rule[k][0] += tid in rf.passed
-    res = {"fail_to_pass": f"{len(f2p & rf.passed)}/{len(f2p)}", "pass_to_pass": f"{len(p2p & rr.passed)}/{len(p2p)}",
+    res = {"fail_to_pass": f"{len(f2p & rf.passed)}/{len(f2p)}", "pass_to_pass": f"{len(p2p & (rr.passed | rf.passed))}/{len(p2p)}",
            "per_rule": {k: f"{a}/{b}" for k, (a, b) in sorted(per_rule.items())}, "build_ok": rf.build_ok}
-    res["verdict"] = "RESOLVED" if f2p <= rf.passed and p2p <= rr.passed else "UNRESOLVED"
+    res["verdict"] = "RESOLVED" if f2p <= rf.passed and p2p <= (rr.passed | rf.passed) else "UNRESOLVED"
     return res

@@ -27,6 +27,18 @@ Plus a **cross-task variation matrix**: task *i*'s tests run against task *j*'s 
 ## Task package (`tasks/<repo>/<family>-NN/`)
 `task.json` (schema `taskfactory/1`: repo URL, **base_commit**, language, commands, fail-to-pass / pass-to-pass lists, rules, difficulty), `PROBLEM.md`, `reference.patch`, `tests.patch`, `variant.json`, `validation.json`.
 
+## Results (19 tasks, 5 families, 3 repos; all pass the gates)
+| Repo | Family | Tasks | Mutation kill | Cross-task pass rate (off-diagonal) |
+|---|---|---|---|---|
+| click | duration | 4 | 91-100% | 0.53-0.84 |
+| click | relations | 4 | 92-100% | 0.00-0.84 |
+| jsoncpp | merge | 4 | 87-100% | 0.59-0.87 |
+| jsoncpp | arrayinline | 4 | 81-88% | 0.09-0.96 |
+| zod | unique | 3 | 89-91% | 0.46-0.89 |
+
+Existing-suite baselines held by every task: click 2653 tests, jsoncpp 133 (+ guard tests), zod 2875.
+`python -m taskfactory report` regenerates `report.html` (dashboard) from the packages. Design and code walkthrough: `docs/BUILD_PLAN.md`.
+
 ## Run it
 ```bash
 scripts/setup.sh                                   # clones repos at pinned commits, installs tooling
@@ -45,6 +57,6 @@ scripts/setup.sh                                   # clones repos at pinned comm
 | click | `relations` | `conflicts_with` / `requires` / exclusive groups on `Option` (edits existing core code) |
 | jsoncpp (C++) | `merge` | `Json::Value::merge` deep merge, 8 optional rules |
 | jsoncpp | `arrayinline` | new `StreamWriterBuilder` setting (edits existing writer) |
-| zod (TS) | in progress | |
+| zod (TS) | `unique` | `ZodArray.unique()`: key / deep equality / per-index issues / type-level typed callback (typecheck project) |
 
 See `LIMITATIONS.md` for an honest statement of scope and weaknesses.

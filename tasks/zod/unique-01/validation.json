@@ -1,0 +1,113 @@
+{
+  "variant": "unique-01",
+  "rules": [
+    "core",
+    "key",
+    "nullish",
+    "perindex",
+    "firstonly",
+    "message"
+  ],
+  "stages": {
+    "S1_base_fails": {
+      "ok": true,
+      "mode": "assertion failures",
+      "failing": 34,
+      "guard_tests_passing_on_base": 0,
+      "rules_without_failing_test": []
+    },
+    "S2_reference_passes": {
+      "ok": true,
+      "passed": 34,
+      "failed": [],
+      "tail": ""
+    },
+    "S3_regression_intact": {
+      "ok": true,
+      "passed": 2875,
+      "failed": [],
+      "baseline_passed": 2875
+    },
+    "S4_rule_ablations": {
+      "ok": true,
+      "per_rule": {
+        "key": {
+          "dropped": [
+            "key"
+          ],
+          "caught": true,
+          "caught_by": 4,
+          "collateral": 3,
+          "build_ok": true
+        },
+        "nullish": {
+          "dropped": [
+            "nullish"
+          ],
+          "caught": true,
+          "caught_by": 4,
+          "collateral": 0,
+          "build_ok": true
+        },
+        "perindex": {
+          "dropped": [
+            "firstonly",
+            "perindex"
+          ],
+          "caught": true,
+          "caught_by": 10,
+          "collateral": 11,
+          "build_ok": true
+        },
+        "firstonly": {
+          "dropped": [
+            "firstonly"
+          ],
+          "caught": true,
+          "caught_by": 4,
+          "collateral": 0,
+          "build_ok": true
+        },
+        "message": {
+          "dropped": [
+            "message"
+          ],
+          "caught": true,
+          "caught_by": 4,
+          "collateral": 9,
+          "build_ok": true
+        }
+      }
+    },
+    "S5_mutation_kill": {
+      "ok": true,
+      "score": 0.9,
+      "killed": 9,
+      "killed_by_regression_only": 0,
+      "survived": 1,
+      "invalid": 2,
+      "survivors": [
+        "packages/zod/src/v4/classic/schemas.ts:2 &&->||: `return a === b || (a !== a && b !== b);` -> `return a === b || (a !== a || b !== b);`"
+      ]
+    },
+    "S6_regression_guard": {
+      "ok": true,
+      "applicable": true,
+      "score": 1.0,
+      "killed_by_existing_suite": 8,
+      "killed_by_feature_tests": 0,
+      "survived": 0,
+      "invalid": 0,
+      "survivors": []
+    },
+    "S7_determinism": {
+      "ok": true
+    }
+  },
+  "ref_patch_lines": 35,
+  "files_touched": [
+    "packages/zod/src/v4/classic/schemas.ts"
+  ],
+  "valid": true,
+  "seconds": 194.6
+}

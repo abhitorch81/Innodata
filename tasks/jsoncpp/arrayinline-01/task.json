@@ -1,0 +1,58 @@
+{
+  "schema": "taskfactory/1",
+  "task_id": "jsoncpp/arrayinline-01",
+  "title": "Add the `arrayInlineLimit` StreamWriterBuilder setting",
+  "repo": {
+    "name": "jsoncpp",
+    "url": "https://github.com/open-source-parsers/jsoncpp",
+    "base_commit": "93acc7b155048f1a66c43235cc205519f1e7a6ea",
+    "language": "cpp"
+  },
+  "problem_statement": "PROBLEM.md",
+  "reference_patch": "reference.patch",
+  "test_patch": "tests.patch",
+  "fail_to_pass": "fail_to_pass.txt",
+  "pass_to_pass": "pass_to_pass.txt",
+  "fail_to_pass_count": 30,
+  "pass_to_pass_count": 137,
+  "commands": {
+    "setup": "none (only a C++11 compiler is needed)",
+    "build": "g++ -std=c++11 -O0 -Iinclude -DJSON_USE_EXCEPTION=1 src/lib_json/*.cpp src/test_lib_json/*.cpp -o jsoncpp_tests",
+    "feature": "./jsoncpp_tests --test-auto   # lines `Testing Task*/...: OK|FAILED`",
+    "regression": "./jsoncpp_tests --test-auto   # every non-`Task*` line must be OK"
+  },
+  "family": "arrayinline",
+  "rules": [
+    {
+      "id": "core",
+      "title": "The `arrayInlineLimit` setting"
+    },
+    {
+      "id": "emptyelem",
+      "title": "Empty containers count as simple"
+    },
+    {
+      "id": "nestedarr",
+      "title": "Nested single-line arrays"
+    },
+    {
+      "id": "totalcount",
+      "title": "Limit counts leaves"
+    },
+    {
+      "id": "noroot",
+      "title": "Root array is exempt"
+    },
+    {
+      "id": "commentguard",
+      "title": "Comments keep arrays expanded"
+    },
+    {
+      "id": "strictvalue",
+      "title": "Strict setting validation"
+    }
+  ],
+  "difficulty": "hard",
+  "validation": "validation.json",
+  "variant": "variant.json"
+}

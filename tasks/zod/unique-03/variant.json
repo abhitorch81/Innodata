@@ -1,0 +1,14 @@
+{
+  "family": "unique",
+  "seed": 3,
+  "rules": [
+    "core",
+    "key",
+    "deep",
+    "nullish",
+    "perindex",
+    "message",
+    "types"
+  ],
+  "params": {}
+}

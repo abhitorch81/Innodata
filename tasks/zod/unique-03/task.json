@@ -1,0 +1,57 @@
+{
+  "schema": "taskfactory/1",
+  "task_id": "zod/unique-03",
+  "title": "Add `.unique()` to `ZodArray`",
+  "repo": {
+    "name": "zod",
+    "url": "https://github.com/colinhacks/zod",
+    "base_commit": "d40c329910436e528d3c26cb1b9179e05abebf05",
+    "language": "ts"
+  },
+  "problem_statement": "PROBLEM.md",
+  "reference_patch": "reference.patch",
+  "test_patch": "tests.patch",
+  "fail_to_pass": "fail_to_pass.txt",
+  "pass_to_pass": "pass_to_pass.txt",
+  "fail_to_pass_count": 35,
+  "pass_to_pass_count": 2875,
+  "commands": {
+    "setup": "pnpm install   # (repo pins `nub`; any pnpm >= 9 works with a pnpm-workspace.yaml listing packages/*)",
+    "feature": "node_modules/.bin/vitest run packages/zod/src/v4/classic/tests/task-unique.test.ts   # runtime + compile-mode + typecheck projects",
+    "regression": "node_modules/.bin/vitest run packages/zod --exclude=packages/zod/src/v4/classic/tests/task-unique.test.ts"
+  },
+  "family": "unique",
+  "rules": [
+    {
+      "id": "core",
+      "title": "Basic uniqueness"
+    },
+    {
+      "id": "key",
+      "title": "Uniqueness by key"
+    },
+    {
+      "id": "deep",
+      "title": "Structural equality"
+    },
+    {
+      "id": "nullish",
+      "title": "Ignore nullish"
+    },
+    {
+      "id": "perindex",
+      "title": "One issue per duplicate"
+    },
+    {
+      "id": "message",
+      "title": "Custom message"
+    },
+    {
+      "id": "types",
+      "title": "Typed callback"
+    }
+  ],
+  "difficulty": "medium",
+  "validation": "validation.json",
+  "variant": "variant.json"
+}

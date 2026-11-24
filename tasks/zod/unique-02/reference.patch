@@ -1,0 +1,77 @@
+diff --git a/packages/zod/src/v4/classic/schemas.ts b/packages/zod/src/v4/classic/schemas.ts
+index 9e989a6..234d8fe 100644
+--- a/packages/zod/src/v4/classic/schemas.ts
++++ b/packages/zod/src/v4/classic/schemas.ts
+@@ -1511,6 +1511,27 @@ export function date(params?: string | core.$ZodDateParams): ZodDate {
+   return core._date(ZodDate, params);
+ }
+ 
++function _uniqueSameValueZero(a: unknown, b: unknown): boolean {
++  return a === b || (a !== a && b !== b);
++}
++
++function _uniqueDeepEqual(a: any, b: any): boolean {
++  if (_uniqueSameValueZero(a, b)) return true;
++  if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime();
++  if (Array.isArray(a) && Array.isArray(b)) {
++    return a.length === b.length && a.every((x, i) => _uniqueDeepEqual(x, b[i]));
++  }
++  const plain = (x: any) => x !== null && typeof x === "object" && Object.getPrototypeOf(x) === Object.prototype;
++  if (plain(a) && plain(b)) {
++    const ka = Object.keys(a);
++    return (
++      ka.length === Object.keys(b).length &&
++      ka.every((k) => Object.prototype.hasOwnProperty.call(b, k) && _uniqueDeepEqual(a[k], b[k]))
++    );
++  }
++  return false;
++}
++
+ // ZodArray
+ export interface ZodArray<T extends core.SomeType = core.$ZodType>
+   extends _ZodType<core.$ZodArrayInternals<T>>,
+@@ -1520,6 +1541,11 @@ export interface ZodArray<T extends core.SomeType = core.$ZodType>
+   nonempty(params?: string | core.$ZodCheckMinLengthParams): this;
+   max(maxLength: number, params?: string | core.$ZodCheckMaxLengthParams): this;
+   length(len: number, params?: string | core.$ZodCheckLengthEqualsParams): this;
++  unique(options?: {
++    by?: (item: core.output<T>, index: number) => unknown;
++    deep?: boolean;
++    ignoreNullish?: boolean;
++  }): this;
+ 
+   unwrap(): T;
+   "~standard": ZodStandardSchemaWithJSON<this>;
+@@ -1547,6 +1573,32 @@ export const ZodArray: core.$constructor<ZodArray> = /*@__PURE__*/ core.$constru
+     length(n, params) {
+       return this.check(checks.length(n, params));
+     },
++    unique(options) {
++      return this.check((ctx) => {
++        const items = ctx.value as unknown[];
++        const keys = items.map((item, i) => (options?.by ? options.by(item as any, i) : item));
++        const equal = options?.deep ? _uniqueDeepEqual : _uniqueSameValueZero;
++        const duplicates: { index: number; first: number }[] = [];
++        for (let i = 0; i < keys.length; i++) {
++          if (options?.ignoreNullish && keys[i] == null) continue;
++          for (let j = 0; j < i; j++) {
++            if (equal(keys[j], keys[i])) {
++              duplicates.push({ index: i, first: j });
++              break;
++            }
++          }
++        }
++        if (!duplicates.length) return;
++        for (const d of duplicates.slice(0, 1)) {
++          ctx.issues.push({
++            code: "custom",
++            input: ctx.value,
++            path: [d.index],
++            message: "Duplicate item in array",
++          });
++        }
++      });
++    },
+     unwrap() {
+       return this.element;
+     },

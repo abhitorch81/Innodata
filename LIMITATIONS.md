@@ -6,3 +6,6 @@
 - Difficulty labels are a transparent heuristic (rules, patch size, files, whether existing code is edited). They are NOT calibrated against real solver pass rates; no LLM solver was run in this repository.
 - Regression protection is only as strong as each repository's existing suite (S6 measures this on neighbouring code). For purely additive patches S6 is not applicable.
 - Packaged test IDs and commands assume the pinned base commit and the toolchain recorded in task.json (Python 3.14 venv, g++ with -std=c++11, pnpm/vitest for zod). The official task interface could not be read (event page is JS-rendered), so task.json is our own documented schema (`taskfactory/1`) and is straightforward to remap.
+- S1 requires every rule to have at least one test that fails on the base commit; negative-behaviour tests ("must stay as before") that already pass are kept as pass-to-pass guard tests, so they do not demonstrate missing behaviour by themselves.
+- Mutation kill of 81-100% is reported per task; surviving mutants are listed in validation.json and some are equivalent mutants (e.g. unreachable branches or defaults overridden elsewhere).
+- zod: the reference is validated against the full packages/zod suite once per task, but mutants run against a small relevant subset of test files for speed.

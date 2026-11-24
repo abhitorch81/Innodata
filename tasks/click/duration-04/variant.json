@@ -1,0 +1,22 @@
+{
+  "family": "duration",
+  "seed": 4,
+  "rules": [
+    "core",
+    "fraction",
+    "case",
+    "bounds"
+  ],
+  "params": {
+    "units": [
+      "w",
+      "h",
+      "m",
+      "s",
+      "ms"
+    ],
+    "unit_desc": "`w` (weeks, 604800 s), `h` (hours, 3600 s), `m` (minutes, 60 s), `s` (seconds, 1 s), `ms` (milliseconds, 0.001 s)",
+    "min_s": 30,
+    "max_s": 86400
+  }
+}

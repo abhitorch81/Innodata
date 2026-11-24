@@ -1,0 +1,14 @@
+{
+  "family": "arrayinline",
+  "seed": 3,
+  "rules": [
+    "core",
+    "emptyelem",
+    "maxwidth",
+    "strictvalue"
+  ],
+  "params": {
+    "pad": true,
+    "width": 28
+  }
+}

@@ -1,0 +1,257 @@
+diff --git a/packages/zod/src/v4/classic/tests/task-unique.test.ts b/packages/zod/src/v4/classic/tests/task-unique.test.ts
+new file mode 100644
+index 0000000..77c4b4e
+--- /dev/null
++++ b/packages/zod/src/v4/classic/tests/task-unique.test.ts
+@@ -0,0 +1,251 @@
++import { expect, expectTypeOf, test } from "vitest";
++import * as z from "zod/v4";
++
++test("rule_core: c0", () => {
++    const r = z.array(z.any()).unique().safeParse([NaN, 2, 0, -0, "1"]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues.every((i) => i.code === "custom" && i.message.length > 0)).toBe(true);
++});
++
++test("rule_core: c1", () => {
++    const r = z.array(z.any()).unique().safeParse([2, "a", "a", "a"]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues.every((i) => i.code === "custom" && i.message.length > 0)).toBe(true);
++});
++
++test("rule_core: c2", () => {
++    const r = z.array(z.any()).unique().safeParse([-0, "1", -0, -0, undefined, 1]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues.every((i) => i.code === "custom" && i.message.length > 0)).toBe(true);
++});
++
++test("rule_core: c3", () => {
++    const r = z.array(z.any()).unique().safeParse(["A", "A", "a", "c", "A", "c"]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues.every((i) => i.code === "custom" && i.message.length > 0)).toBe(true);
++});
++
++test("rule_core: c4", () => {
++    const r1 = {b: 2, a: 1};
++    const r = z.array(z.any()).unique().safeParse([[2, 1], r1]);
++    expect(r.success).toBe(true);
++});
++
++test("rule_core: c5", () => {
++    const r = z.array(z.any()).unique().safeParse([2, 0]);
++    expect(r.success).toBe(true);
++});
++
++test("rule_core: c6", () => {
++    const r = z.array(z.any()).unique().safeParse(["1", 1, 2, "a"]);
++    expect(r.success).toBe(true);
++});
++
++test("rule_key: c0", () => {
++    const r3 = {id: 1, tag: "y"};
++    const schema = z.array(z.any()).unique({ by: (x: any) => x.id, deep: true, ignoreNullish: true });
++    const r = schema.safeParse([r3, {id: 1, tag: "x"}]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_key: c1", () => {
++    const schema = z.array(z.any()).unique({ by: (x: any) => x.toLowerCase(), deep: true });
++    const r = schema.safeParse(["b", "B"]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_key: c2", () => {
++    const schema = z.array(z.any()).unique({ by: (x: any) => x.toLowerCase() });
++    const r = schema.safeParse(["B", "b"]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_key: c3", () => {
++    const schema = z.array(z.any()).unique({ by: (x: any) => x.toLowerCase(), deep: true });
++    const r = schema.safeParse(["b", "B"]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_key: c4", () => {
++    const schema = z.array(z.any()).unique({ deep: true });
++    const r = schema.safeParse([NaN, 2, 0, -0, "1"]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [3]}]);
++});
++
++test("rule_deep: c0", () => {
++    const r1 = [1, 2];
++    const schema = z.array(z.any()).unique({ deep: true });
++    const r = schema.safeParse([r1, [1, 2]]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_deep: c1", () => {
++    const schema = z.array(z.any()).unique({ deep: true, ignoreNullish: true });
++    const r = schema.safeParse([{id: 1, tag: "y"}, {id: 1, tag: "y"}]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_deep: c2", () => {
++    const schema = z.array(z.any()).unique({ deep: true });
++    const r = schema.safeParse([[1, 2], [1, 2]]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_deep: c3", () => {
++    const schema = z.array(z.any()).unique({ deep: true, ignoreNullish: true });
++    const r = schema.safeParse([new Date(2000), new Date(2000)]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_deep: c4", () => {
++    const schema = z.array(z.any()).unique({ deep: true });
++    const r = schema.safeParse([NaN, 2, 0, -0, "1"]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [3]}]);
++});
++
++test("rule_nullish: c0", () => {
++    const schema = z.array(z.any()).unique({ by: (x: any) => x.id, ignoreNullish: true });
++    const r = schema.safeParse([{id: null, tag: "y"}, {id: null, tag: "y"}]);
++    expect(r.success).toBe(true);
++});
++
++test("rule_nullish: c1", () => {
++    const r1 = {tag: "x"};
++    const schema = z.array(z.any()).unique({ by: (x: any) => x.id, deep: true, ignoreNullish: true });
++    const r = schema.safeParse([{tag: "x"}, {id: 1, tag: "y"}, r1]);
++    expect(r.success).toBe(true);
++});
++
++test("rule_nullish: c2", () => {
++    const r3 = {tag: "y"};
++    const r2 = {tag: "y"};
++    const schema = z.array(z.any()).unique({ by: (x: any) => x.id, ignoreNullish: true });
++    const r = schema.safeParse([r3, {id: 3, tag: "y"}, r2]);
++    expect(r.success).toBe(true);
++});
++
++test("rule_nullish: c3", () => {
++    const schema = z.array(z.any()).unique({ by: (x: any) => x.id, deep: true, ignoreNullish: true });
++    const r = schema.safeParse([{id: 1, tag: "y"}, {tag: "x"}, {tag: "x"}]);
++    expect(r.success).toBe(true);
++});
++
++test("rule_nullish: c4", () => {
++    const schema = z.array(z.any()).unique({ deep: true });
++    const r = schema.safeParse([NaN, 2, 0, -0, "1"]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [3]}]);
++});
++
++test("rule_perindex: c0", () => {
++    const r3 = {id: 1, tag: "y"};
++    const schema = z.array(z.any()).unique({ by: (x: any) => x.id, deep: true, ignoreNullish: true });
++    const r = schema.safeParse([r3, {id: 1, tag: "x"}]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_perindex: c1", () => {
++    const schema = z.array(z.any()).unique({ by: (x: any) => x.toLowerCase(), deep: true });
++    const r = schema.safeParse(["c", "c"]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_perindex: c2", () => {
++    const r1 = {id: 1, tag: "x"};
++    const schema = z.array(z.any()).unique({ by: (x: any) => x.id, deep: true });
++    const r = schema.safeParse([r1, {id: 1, tag: "x"}]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_perindex: c3", () => {
++    const schema = z.array(z.any()).unique();
++    const r = schema.safeParse([2, 2]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_firstonly: c0", () => {
++    const schema = z.array(z.any()).unique({ by: (x: any) => x.toLowerCase(), ignoreNullish: true });
++    const r = schema.safeParse(["b", "B", "b"]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_firstonly: c1", () => {
++    const schema = z.array(z.any()).unique();
++    const r = schema.safeParse(["a", "a", "a"]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_firstonly: c2", () => {
++    const schema = z.array(z.any()).unique({ by: (x: any) => x.toLowerCase(), deep: true });
++    const r = schema.safeParse(["b", "b", "B"]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_firstonly: c3", () => {
++    const r3 = {id: 2, tag: "x"};
++    const schema = z.array(z.any()).unique({ by: (x: any) => x.id, deep: true });
++    const r = schema.safeParse([{id: 2, tag: "x"}, r3, {id: 2, tag: "y"}]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [1]}]);
++});
++
++test("rule_firstonly: c4", () => {
++    const schema = z.array(z.any()).unique({ deep: true });
++    const r = schema.safeParse([NaN, 2, 0, -0, "1"]);
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues).toMatchObject([{"code": "custom", "path": [3]}]);
++});
++
++test("rule_core: parsed output values are compared", () => {
++    const schema = z.array(z.string().trim()).unique();
++    expect(schema.safeParse([" a", "a"]).success).toBe(false);
++    expect(schema.safeParse([" a", "b"]).success).toBe(true);
++    expect(schema.safeParse([]).success).toBe(true);
++    expect(schema.safeParse(["x"]).success).toBe(true);
++});
++
++test("rule_core: SameValueZero examples from the specification", () => {
++    const ok = (x: unknown[]) => z.array(z.any()).unique().safeParse(x).success;
++    expect(ok([Number.NaN, Number.NaN])).toBe(false);
++    expect(ok([0, -0])).toBe(false);
++    expect(ok(["1", 1])).toBe(true);
++    expect(ok([null, undefined])).toBe(true);
++    expect(ok([{ a: 1 }, { a: 1 }])).toBe(true);
++    const o = { a: 1 };
++    expect(ok([o, o])).toBe(false);
++    expect(ok([undefined, "a"])).toBe(true);
++    expect(ok(["a", undefined])).toBe(true);
++});
++
++test("rule_perindex: nested path is prefixed", () => {
++    const schema = z.object({ tags: z.array(z.string()).unique() });
++    const r = schema.safeParse({ tags: ["a", "b", "a"] });
++    expect(r.success).toBe(false);
++    expect(r.success ? [] : r.error.issues.map((i) => i.path)).toEqual([["tags", 2]]);
++});
++
++test("rule_types: callback is typed with the element output type", () => {
++    const ok = z.array(z.string()).unique({ by: (s) => s.length });
++    expectTypeOf(ok).toEqualTypeOf<z.ZodArray<z.ZodString>>();
++    // @ts-expect-error the callback receives a string, not a number
++    z.array(z.string()).unique({ by: (s: number) => s });
++    expect(ok.safeParse(["a", "bb"]).success).toBe(true);
++    expect(ok.safeParse(["a", "b"]).success).toBe(false);
++});

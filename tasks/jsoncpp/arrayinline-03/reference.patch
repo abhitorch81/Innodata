@@ -1,0 +1,160 @@
+diff --git a/include/json/writer.h b/include/json/writer.h
+index 8d1c6e5..801da19 100644
+--- a/include/json/writer.h
++++ b/include/json/writer.h
+@@ -113,6 +113,8 @@ public:
+    *  - Type of precision for formatting of real values.
+    *  - "emitUTF8": false or true
+    *  - If true, outputs raw UTF8 strings instead of escaping them.
++   *  - "arrayInlineLimit": unsigned int (default 0 = off)
++   *  - In pretty mode, short arrays of simple values are written on one line.
+    *
+    *  You can examine `settings_` yourself
+    *  to see the defaults. You can also write and read them just like any
+diff --git a/src/lib_json/json_writer.cpp b/src/lib_json/json_writer.cpp
+index 7279944..6ca09ea 100644
+--- a/src/lib_json/json_writer.cpp
++++ b/src/lib_json/json_writer.cpp
+@@ -824,10 +824,14 @@ struct BuiltStyledStreamWriter : public StreamWriter {
+                           bool emitUTF8, unsigned int precision,
+                           PrecisionType precisionType);
+   int write(Value const& root, OStream* sout) override;
++  void configureInline(unsigned int limit);
+ 
+ private:
+   void writeValue(Value const& value);
+   void writeArrayValue(Value const& value);
++  bool inlineArrayText(Value const& value, String& out);
++  bool buildInlineArray(Value const& value, String& out, unsigned int& leaves);
++  String inlineScalarText(Value const& value);
+   bool isMultilineArray(Value const& value);
+   void pushValue(String const& value);
+   void writeIndent();
+@@ -854,6 +858,8 @@ private:
+   bool emitUTF8_ : 1;
+   unsigned int precision_;
+   PrecisionType precisionType_;
++  unsigned int inlineLimit_ = 0;
++  Value const* rootValue_ = nullptr;
+ };
+ BuiltStyledStreamWriter::BuiltStyledStreamWriter(
+     String indentation, CommentStyle::Enum cs, String colonSymbol,
+@@ -870,6 +876,7 @@ int BuiltStyledStreamWriter::write(Value const& root, OStream* sout) {
+   addChildValues_ = false;
+   indented_ = true;
+   indentString_.clear();
++  rootValue_ = &root;
+   writeCommentBeforeValue(root);
+   if (!indented_)
+     writeIndent();
+@@ -948,6 +955,11 @@ void BuiltStyledStreamWriter::writeArrayValue(Value const& value) {
+   if (size == 0)
+     pushValue("[]");
+   else {
++    String inlineText;
++    if (inlineArrayText(value, inlineText)) {
++      pushValue(inlineText);
++      return;
++    }
+     bool isMultiLine = (cs_ == CommentStyle::All) || isMultilineArray(value);
+     if (isMultiLine) {
+       writeWithIndent("[");
+@@ -993,6 +1005,58 @@ void BuiltStyledStreamWriter::writeArrayValue(Value const& value) {
+   }
+ }
+ 
++void BuiltStyledStreamWriter::configureInline(unsigned int limit) { inlineLimit_ = limit; }
++
++String BuiltStyledStreamWriter::inlineScalarText(Value const& value) {
++  ChildValues saved;
++  saved.swap(childValues_);
++  const bool savedAdd = addChildValues_;
++  addChildValues_ = true;
++  writeValue(value);
++  String text = childValues_.empty() ? String() : childValues_.back();
++  childValues_.swap(saved);
++  addChildValues_ = savedAdd;
++  return text;
++}
++
++bool BuiltStyledStreamWriter::buildInlineArray(Value const& value, String& out,
++                                               unsigned int& leaves) {
++  ArrayIndex const size = value.size();
++  if (size == 0)
++    return false;
++  if (size > inlineLimit_)
++    return false;
++  String text = "[ ";
++  unsigned int own = 0;
++  for (ArrayIndex index = 0; index < size; ++index) {
++    Value const& child = value[index];
++    if (index > 0)
++      text += ", ";
++    if (child.isArray() || child.isObject()) {
++      if (child.empty()) {
++        text += child.isArray() ? "[]" : "{}";
++        ++own;
++        continue;
++      }
++      return false;
++    }
++    text += inlineScalarText(child);
++    ++own;
++  }
++  text += " ]";
++  if (text.size() > 28)
++    return false;
++  out = text;
++  leaves = own;
++  return true;
++}
++
++bool BuiltStyledStreamWriter::inlineArrayText(Value const& value, String& out) {
++  if (inlineLimit_ == 0 || indentation_.empty())
++    return false;
++  unsigned int leaves = 0;
++  return buildInlineArray(value, out, leaves);
++}
+ bool BuiltStyledStreamWriter::isMultilineArray(Value const& value) {
+   ArrayIndex const size = value.size();
+   bool isMultiLine = size * 3 >= rightMargin_;
+@@ -1139,9 +1203,20 @@ StreamWriter* StreamWriterBuilder::newStreamWriter() const {
+   if (pre > 17)
+     pre = 17;
+   String endingLineFeedSymbol;
+-  return new BuiltStyledStreamWriter(indentation, cs, colonSymbol, nullSymbol,
+-                                     endingLineFeedSymbol, usf, emitUTF8, pre,
+-                                     precisionType);
++  const Value& limitSetting = settings_["arrayInlineLimit"];
++  unsigned int inlineLimit = 0;
++  if (limitSetting.type() == intValue || limitSetting.type() == uintValue) {
++    if (limitSetting.type() == intValue && limitSetting.asInt64() < 0)
++      throwRuntimeError("arrayInlineLimit must not be negative");
++    inlineLimit = limitSetting.asUInt();
++  } else if (!limitSetting.isNull()) {
++    throwRuntimeError("arrayInlineLimit must be an integer");
++  }
++  BuiltStyledStreamWriter* writer = new BuiltStyledStreamWriter(
++      indentation, cs, colonSymbol, nullSymbol, endingLineFeedSymbol, usf, emitUTF8, pre,
++      precisionType);
++  writer->configureInline(inlineLimit);
++  return writer;
+ }
+ 
+ bool StreamWriterBuilder::validate(Json::Value* invalid) const {
+@@ -1154,6 +1229,7 @@ bool StreamWriterBuilder::validate(Json::Value* invalid) const {
+       "emitUTF8",
+       "precision",
+       "precisionType",
++      "arrayInlineLimit",
+   };
+   for (auto si = settings_.begin(); si != settings_.end(); ++si) {
+     auto key = si.name();
+@@ -1181,6 +1257,7 @@ void StreamWriterBuilder::setDefaults(Json::Value* settings) {
+   (*settings)["emitUTF8"] = false;
+   (*settings)["precision"] = 17;
+   (*settings)["precisionType"] = "significant";
++  (*settings)["arrayInlineLimit"] = 0;
+   //! [StreamWriterBuilderDefaults]
+ }
+ 

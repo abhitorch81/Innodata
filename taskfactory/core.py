@@ -136,12 +136,20 @@ class Recipe:
         lines = [f"# {self.title(v)}", "", self.preamble(v), "", "## Requirements", ""]
         for i, rid in enumerate(v.rules, 1):
             r = self.rule(rid)
-            lines.append(f"{i}. **{r.title}.** {r.requirement.format(**v.params)}")
+            lines.append(f"{i}. **{r.title}.** {self._fill(r.requirement, v.params)}")
         lines += ["", "## Notes", "",
                   "- Do not modify existing tests. Hidden tests cover every numbered requirement above "
                   "and the repository's existing test-suite must keep passing.",
                   "- Anything not stated above is unspecified and is not tested."]
         return "\n".join(lines) + "\n"
+
+    @staticmethod
+    def _fill(text: str, params: dict) -> str:
+        """Substitute {param} placeholders only; literal braces in prose (code samples) are left alone.
+        `{{` / `}}` are still accepted as escapes for backwards compatibility."""
+        for k, val in params.items():
+            text = text.replace("{" + k + "}", str(val))
+        return text.replace("{{", "{").replace("}}", "}")
 
     def ablation_sets(self, v: Variant) -> dict:
         """rule id -> rule set with that rule (and anything depending on it) removed."""

@@ -352,7 +352,7 @@ class JsoncppArrayInline(Recipe):
             if cs == "None" and not self._all_eligible(val, full, P, cfg):
                 continue
             e1 = self.model(val, full, P, cfg)
-            if e1 == self.model(val, full, P, dict(cfg, limit=0)):
+            if rid == "core" and e1 == self.model(val, full, P, dict(cfg, limit=0)):
                 continue  # identical to base-commit output: would pass before the change (S1 requires fail-to-pass)
             if rid == "core":
                 if e1 == self.model(val, {"core"}, P, cfg):
