@@ -8,7 +8,8 @@ from .adapters.base import rule_of
 from .core import ROOT, REPOS, Workspace, sh
 from .validate import validate
 
-TASKS = ROOT / "tasks"
+import os
+TASKS = Path(os.environ.get("TASKFACTORY_OUT", ROOT / "tasks"))
 REPO_URLS = {"click": "https://github.com/pallets/click", "zod": "https://github.com/colinhacks/zod",
              "jsoncpp": "https://github.com/open-source-parsers/jsoncpp"}
 SCHEMA = "taskfactory/1"

@@ -60,3 +60,13 @@ scripts/setup.sh                                   # clones repos at pinned comm
 | zod (TS) | `unique` | `ZodArray.unique()`: key / deep equality / per-index issues / type-level typed callback (typecheck project) |
 
 See `LIMITATIONS.md` for an honest statement of scope and weaknesses.
+
+## Interactive app (three.js + GSAP)
+
+```bash
+.venv/bin/python app/server.py 8765   # live: http://localhost:8765  (real grader + live build)
+python app/make_static.py             # regenerates app/factory-static.html (single file, recorded evidence)
+```
+Three stations: **Atlas** (all tasks), **Pipeline** (S1–S7 gates, click a rule orb to ablate it, grade candidates),
+**Variation** (cross-task matrix). **Lab** composes new tasks from rules and builds them live; **Play** lists
+interactions. Add your own in `app/custom-interactions.js` via `TaskFactoryApp.registerInteraction({...})`.

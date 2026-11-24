@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Task Factory</title>
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+</head>
+<body>
+<canvas id="gl"></canvas>
+
+<header id="top">
+  <div class="brand"><span class="logo"></span><div><b>Task Factory</b><small>coding-task synthesis &amp; validation</small></div></div>
+  <nav id="nav">
+    <button data-st="atlas" class="on">Atlas <kbd>1</kbd></button>
+    <button data-st="pipeline">Pipeline <kbd>2</kbd></button>
+    <button data-st="variation">Variation <kbd>3</kbd></button>
+  </nav>
+  <div id="mode" class="pill">connecting…</div>
+</header>
+
+<aside id="left" class="glass">
+  <h3>Tasks</h3>
+  <div id="tasklist"></div>
+</aside>
+
+<aside id="right" class="glass">
+  <div class="tabs" id="tabs">
+    <button data-tab="task" class="on">Task</button><button data-tab="grader">Grader</button>
+    <button data-tab="lab">Lab</button><button data-tab="play">Play</button>
+  </div>
+  <section id="tab-task" class="pane on"></section>
+  <section id="tab-grader" class="pane"></section>
+  <section id="tab-lab" class="pane"></section>
+  <section id="tab-play" class="pane"></section>
+</aside>
+
+<div id="banner"></div>
+<div id="hover" class="glass"></div>
+<div id="toast"></div>
+<footer id="console" class="glass"><div id="log"></div></footer>
+<div id="modal" class="hide"><div class="glass box"><button id="mclose">✕</button><pre id="mbody"></pre></div></div>
+
+<script src="data.js"></script>
+<script type="module" src="app.js"></script>
+<script src="custom-interactions.js" defer></script>
+</body>
+</html>

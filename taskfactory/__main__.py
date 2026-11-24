@@ -18,7 +18,8 @@ def main(argv=None):
     b = sub.add_parser("build", help="sample -> render -> validate -> package")
     b.add_argument("--repo", required=True); b.add_argument("--family", required=True)
     b.add_argument("-n", type=int, default=4); b.add_argument("--seed", type=int, default=0)
-    b.add_argument("--mutants", type=int, default=30); b.add_argument("--no-matrix", action="store_true")
+    b.add_argument("--mutants", type=int, default=30)
+    b.add_argument("--rules", default="", help="comma separated rule ids: compose a custom task instead of sampling"); b.add_argument("--no-matrix", action="store_true")
     e = sub.add_parser("evaluate", help="grade a candidate patch against a packaged task")
     e.add_argument("task_dir"); e.add_argument("patch")
     sub.add_parser("list"); sub.add_parser("report")
@@ -44,7 +45,25 @@ def main(argv=None):
     base = ad.run_regression(ws, None, type("S", (), {"feature_test_paths": staticmethod(lambda v: [])}), full=True)
     print(f"[{a.repo}] baseline @ {ws.base[:10]}: {len(base.passed)} existing tests pass, {len(base.failed)} fail")
     recipe._baseline = {a.repo: len(base.passed)}
-    variants = recipe.sample(a.n, a.seed)
+    if a.rules:  # custom composition (used by the app's Rule Lab)
+        import random
+        from .core import Variant
+        want = {r for r in a.rules.split(",") if r}
+        unknown = want - {r.id for r in recipe.ALL_RULES}
+        if unknown:
+            sys.exit(f"unknown rules: {sorted(unknown)}")
+        grew = True
+        while grew:  # close under `needs`
+            grew = False
+            for r in recipe.ALL_RULES:
+                if r.id in want:
+                    for d in r.needs:
+                        if d not in want:
+                            want.add(d); grew = True
+        rules = [r.id for r in recipe.ALL_RULES if r.id in want or r.id in recipe.CORE]
+        variants = [Variant(recipe.family, a.seed, rules, recipe.sample_params(random.Random(a.seed), rules))]
+    else:
+        variants = recipe.sample(a.n, a.seed)
     results = []
     for v in variants:
         print(f"\n== {a.repo}/{v.id}  rules={v.rules}")
