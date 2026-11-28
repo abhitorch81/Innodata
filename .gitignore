@@ -10,3 +10,4 @@ demo_video/audio/
 demo_video/*.mp4
 demo_video/*.png
 demo_video/concat.txt
+demo_video/voices/
