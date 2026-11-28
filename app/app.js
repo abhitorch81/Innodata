@@ -87,10 +87,10 @@ scene.add(atlasG, pipeG, varG);
 const STATIONS = {
   atlas: { cam: [0, 24, 50], look: [0, 0, 0] },
   pipeline: { cam: [14, 6, -58], look: [14, -1, -90] },
-  variation: { cam: [100, 16, -6], look: [100, 2, -30] },
+  variation: { cam: [100, 20, 0], look: [100, 2, -30] },
 };
 function flyTo(st, dur = 2.1) {
-  const p = STATIONS[st]; S.station = st; stationLabels(st); setTimeout(() => stationLabels(st), 50);
+  const p = STATIONS[st]; S.station = st; stationLabels(st); setTimeout(() => stationLabels(st), 50); gsap.to(bloom, { strength: st === 'variation' ? 0.25 : 0.95, threshold: st === 'variation' ? 0.6 : 0.08, duration: 1.2 });
   gsap.to(camera.position, { x: p.cam[0], y: p.cam[1], z: p.cam[2], duration: dur, ease: 'power3.inOut' });
   gsap.to(controls.target, { x: p.look[0], y: p.look[1], z: p.look[2], duration: dur, ease: 'power3.inOut' });
   $$('#nav button').forEach((b) => b.classList.toggle('on', b.dataset.st === st));
@@ -336,7 +336,7 @@ function buildVariation(t) {
   M.m.forEach((row, i) => row.forEach((v, j) => {
     const h = Math.max(0.12, v * 6), diag = i === j;
     const col = diag ? 0xffd166 : tmpC.setHSL(0.02 + v * 0.38, 0.9, 0.55).getHex();
-    const m = new THREE.Mesh(new THREE.BoxGeometry(1.5, h, 1.5), new THREE.MeshBasicMaterial({ color: col, toneMapped: false, transparent: true, opacity: 0.92 }));
+    const m = new THREE.Mesh(new THREE.BoxGeometry(1.5, h, 1.5), new THREE.MeshBasicMaterial({ color: new THREE.Color(col).multiplyScalar(0.5), toneMapped: false, transparent: true, opacity: 0.95 }));
     m.position.set(j * sp - off, h / 2, i * sp - off); m.scale.y = 0.001;
     m.userData = { type: 'bar', i, j, v, a: M.variants[i], b: M.variants[j], h }; varG.add(m); bars.push(m); pickables.push(m);
     gsap.to(m.scale, { y: 1, duration: 1.1, delay: 0.2 + (i + j) * 0.07, ease: 'back.out(1.6)' });

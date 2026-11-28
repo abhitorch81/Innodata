@@ -4,3 +4,9 @@ repos/
 __pycache__/
 *.pyc
 .junit.xml
+demo_video/node_modules/
+demo_video/frames/
+demo_video/audio/
+demo_video/*.mp4
+demo_video/*.png
+demo_video/concat.txt
